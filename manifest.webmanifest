@@ -1,0 +1,21 @@
+{
+  "name": "Banco Inverter",
+  "short_name": "Banco Inverter",
+  "description": "Guía de banco para reparar placas inverter de minisplit a nivel componente: tablas de medición, matriz de propagación de fallas y códigos por marca.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "/banco-inverter/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#eceef1",
+  "theme_color": "#0b5cad",
+  "categories": ["utilities", "education", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

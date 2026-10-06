@@ -1,0 +1,1106 @@
+<title>Banco Inverter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: ficha técnica de servicio — barra de pestañas fija, una columna de
+   contenido de 72ch, tablas de medición a ancho completo con scroll propio. */
+:root{
+  --bg:#eceef1; --surface:#fbfcfd; --surface-2:#f1f3f6;
+  --fg:#16191d; --muted:#5b646e; --line:#d3d8de; --line-strong:#b6bec7;
+  --accent:#0b5cad; --accent-soft:#e2ecf8; --accent-ink:#0b5cad;
+  --ok:#15724a; --ok-soft:#dcefe4;
+  --warn:#8a5a00; --warn-soft:#faeed2;
+  --danger:#a8231f; --danger-soft:#f7e0de;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14171b; --surface:#1b1f25; --surface-2:#22272f;
+  --fg:#e7eaee; --muted:#9aa4af; --line:#2b323b; --line-strong:#3b444f;
+  --accent:#6fb2f2; --accent-soft:#17283a; --accent-ink:#9ccbf8;
+  --ok:#54c694; --ok-soft:#142c23;
+  --warn:#e2aa4e; --warn-soft:#32280f;
+  --danger:#f2786f; --danger-soft:#361a19;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#14171b; --surface:#1b1f25; --surface-2:#22272f;
+  --fg:#e7eaee; --muted:#9aa4af; --line:#2b323b; --line-strong:#3b444f;
+  --accent:#6fb2f2; --accent-soft:#17283a; --accent-ink:#9ccbf8;
+  --ok:#54c694; --ok-soft:#142c23;
+  --warn:#e2aa4e; --warn-soft:#32280f;
+  --danger:#f2786f; --danger-soft:#361a19;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.6;margin:0}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;line-height:1.18;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--accent-ink)}
+code,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---- barra superior ---- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;padding:10px 16px 8px;max-width:1040px;margin:0 auto}
+.mark{width:26px;height:26px;flex:none}
+.brand h1{font-size:17px;letter-spacing:-.015em}
+.brand .sub{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-left:auto;text-align:right}
+.tabs{display:flex;gap:2px;overflow-x:auto;padding:0 10px;max-width:1040px;margin:0 auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.02em;
+  padding:8px 10px 9px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--fg)}
+.tabs button:focus-visible,.chk:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- contenedor ---- */
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:22px 64px}
+.view{display:grid;gap:22px}
+.col{max-width:72ch}
+
+.eyebrow{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+h2.sec{font-size:24px;letter-spacing:-.02em;margin-top:2px}
+h3.sub{font-size:16px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:14.5px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:16px}
+.panel-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+
+/* ---- avisos ---- */
+.alert{border-radius:4px;padding:13px 15px;display:grid;gap:6px;border:1px solid}
+.alert h3{font-size:14.5px;letter-spacing:.01em}
+.alert p{font-size:14px}
+.alert.danger{background:var(--danger-soft);border-color:var(--danger);color:var(--fg)}
+.alert.danger h3{color:var(--danger)}
+.alert.warn{background:var(--warn-soft);border-color:var(--warn)}
+.alert.warn h3{color:var(--warn)}
+.alert.info{background:var(--accent-soft);border-color:var(--line-strong)}
+.alert.info h3{color:var(--accent-ink)}
+
+/* ---- tablas ---- */
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:13.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--surface-2);font-family:var(--display);font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+td.v{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:12.5px}
+.good{color:var(--ok);font-weight:500}
+.bad{color:var(--danger);font-weight:500}
+
+/* ---- progreso ---- */
+.meter{height:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s ease}
+.meterrow{display:flex;align-items:center;gap:12px}
+.meterrow .num{font-size:12.5px;color:var(--muted);white-space:nowrap}
+
+.tasks{list-style:none;margin:0;padding:0;display:grid}
+.tasks li{border-top:1px solid var(--line)}
+.tasks li:first-child{border-top:0}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;width:100%;
+  background:none;border:0;text-align:left;padding:10px 2px;cursor:pointer;color:inherit;font:inherit}
+.chk .box{width:17px;height:17px;margin-top:3px;border:1.5px solid var(--line-strong);border-radius:3px;
+  display:grid;place-items:center;flex:none;background:var(--surface)}
+.chk[aria-pressed="true"] .box{background:var(--accent);border-color:var(--accent)}
+.chk .box svg{opacity:0;width:11px;height:11px}
+.chk[aria-pressed="true"] .box svg{opacity:1}
+.chk[aria-pressed="true"] .lbl{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.chk .lbl{font-size:14px;line-height:1.5}
+.chk .lbl em{font-style:normal;color:var(--muted);font-size:12.5px;display:block;margin-top:1px}
+
+.weekgrid{display:grid;gap:14px}
+.week{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:14px 16px}
+.week header{display:grid;gap:7px;margin-bottom:4px}
+.week .wtop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.wnum{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--accent-ink);
+  background:var(--accent-soft);border:1px solid var(--line-strong);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.week h3{font-size:17px;letter-spacing:-.015em}
+.goal{font-size:13.5px;color:var(--muted)}
+.goal b{color:var(--fg);font-weight:600}
+
+/* ---- chips de bloque de placa ---- */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:11.5px;padding:2px 7px;border-radius:3px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.chip.hot{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.chip.pwr{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.chip.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+
+/* ---- diagrama ---- */
+.diagram{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px}
+.diagram svg{display:block;min-width:720px;width:100%;height:auto}
+.dg-box{fill:var(--surface-2);stroke:var(--line-strong)}
+.dg-box-hot{fill:var(--danger-soft);stroke:var(--danger)}
+.dg-box-pwr{fill:var(--accent-soft);stroke:var(--accent)}
+.dg-t{fill:var(--fg);font-family:var(--display);font-size:11.5px;font-weight:700;letter-spacing:.04em}
+.dg-s{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.dg-l{stroke:var(--line-strong);stroke-width:1.5;fill:none}
+.dg-cap{fill:var(--muted);font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.08em}
+
+/* ---- bitácora ---- */
+.form{display:grid;gap:10px}
+.frow{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+label.f{display:grid;gap:4px;font-size:11.5px;font-family:var(--display);font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--muted);min-width:0}
+input,select,textarea{font-family:var(--body);font-size:14px;color:var(--fg);background:var(--surface-2);
+  border:1px solid var(--line-strong);border-radius:3px;padding:8px 9px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:58px}
+.btn{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.02em;
+  border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:3px;padding:9px 15px;cursor:pointer}
+:root[data-theme="dark"] .btn,:root:not([data-theme="light"]) .btn{color:#0f1317}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .btn{color:#fff}}
+.btn.ghost{background:none;color:var(--muted);border-color:var(--line-strong);font-weight:600}
+.btn.ghost:hover{color:var(--fg);border-color:var(--fg)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.cards{display:grid;gap:9px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px 14px;display:grid;gap:6px}
+.card .ctop{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.card h4{font-size:15px;letter-spacing:-.01em}
+.card .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-left:auto}
+.card p{font-size:13.5px;color:var(--muted)}
+.state{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:3px;border:1px solid;white-space:nowrap}
+.state.banco{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink)}
+.state.reparada{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.state.entregada{background:var(--surface-2);border-color:var(--line-strong);color:var(--muted)}
+.state.rechazada{background:var(--danger-soft);border-color:var(--danger);color:var(--danger)}
+.empty{border:1px dashed var(--line-strong);border-radius:4px;padding:20px 16px;text-align:center;color:var(--muted);font-size:13.5px}
+
+.stats{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:11px 13px}
+.stat .k{font-family:var(--display);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:21px;font-weight:500;margin-top:2px}
+
+ul.bul{margin:0;padding-left:19px;display:grid;gap:7px;font-size:14px}
+ul.bul li::marker{color:var(--muted)}
+.rule{height:1px;background:var(--line);border:0;margin:2px 0}
+.foot{font-size:12.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dot{width:6px;height:6px;border-radius:99px;background:var(--muted);flex:none}
+.dot.on{background:var(--ok)}
+.linklist{display:grid;gap:9px;font-size:14px}
+.linklist a{display:block;font-weight:500}
+.linklist span{display:block;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="2.5" y="5.5" width="19" height="13" rx="1.5" stroke="var(--accent)" stroke-width="1.6"/>
+      <path d="M6 12h3l1.5-3 2 6 1.5-3h4" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Banco Inverter</h1>
+    <span class="sub">CDMX · placas de minisplit</span>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button role="tab" data-view="plan" aria-selected="true">Plan</button>
+    <button role="tab" data-view="banco" aria-selected="false">Banco</button>
+    <button role="tab" data-view="propagacion" aria-selected="false">Propagación</button>
+    <button role="tab" data-view="marcas" aria-selected="false">Marcas</button>
+    <button role="tab" data-view="bitacora" aria-selected="false">Bitácora</button>
+    <button role="tab" data-view="negocio" aria-selected="false">Negocio</button>
+    <button role="tab" data-view="recursos" aria-selected="false">Recursos</button>
+  </nav>
+</div>
+
+<div class="wrap">
+
+<!-- ======================= PLAN ======================= -->
+<section class="view" id="v-plan">
+  <div class="col">
+    <p class="eyebrow">Plan de estudio · 4 semanas</p>
+    <h2 class="sec">De electrónica general a placa inverter</h2>
+    <p class="lede" style="margin-top:8px">Veinticuatro horas repartidas en cuatro semanas: martes y jueves después de las 18 h para teoría, domingo de 2.5 a 3 h de práctica en banco. Todo está diseñado para medirse con multímetro y una fuente ATX reciclada — lo que necesita osciloscopio va marcado aparte.</p>
+  </div>
+
+  <div class="panel col">
+    <div class="meterrow">
+      <div class="meter" style="flex:1"><i id="bar-plan" style="width:0%"></i></div>
+      <span class="num" id="pct-plan">0 / 24</span>
+    </div>
+    <p class="lede" id="next-task" style="margin-top:10px;font-size:13.5px">Lo siguiente: leer el PDF 1 de la UTN.</p>
+  </div>
+
+  <div class="alert danger col">
+    <h3>Regla cero — antes de la semana 1</h3>
+    <p>Los electrolíticos del bus guardan <b>300–400 V</b> durante minutos después de desconectar. Descarga siempre con una resistencia de <code>10–20 kΩ / 5 W</code> entre <code>P</code> y <code>N</code> — nunca con desarmador — y verifica con el multímetro que el bus esté <b>por debajo de 30 V</b> antes de tocar nada. Hazlo incluso en placas que llevan semanas en el banco.</p>
+  </div>
+
+  <div class="weekgrid col" id="weeks"></div>
+</section>
+
+<!-- ======================= BANCO ======================= -->
+<section class="view" id="v-banco" hidden>
+  <div class="col">
+    <p class="eyebrow">Referencia de banco</p>
+    <h2 class="sec">Qué medir, en qué orden</h2>
+    <p class="lede" style="margin-top:8px">Las tablas que usas con las manos sucias. Todo esto se mide con la placa desconectada salvo donde diga lo contrario.</p>
+  </div>
+
+  <div class="alert danger col">
+    <h3>Antes de tocar la placa</h3>
+    <p>Descarga el bus con resistencia de <code>10–20 kΩ / 5 W</code> entre <code>P</code> y <code>N</code>. Verifica <code>&lt; 30 V</code> con el multímetro. Energiza siempre a través de la lámpara serie.</p>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Recorrido de la energía</h3></div>
+    <div class="diagram">
+      <svg viewBox="0 0 880 300" role="img" aria-label="Diagrama de bloques: entrada AC, filtro EMI, rectificador, bus DC, PFC, IPM y compresor; la fuente conmutada cuelga del bus DC y alimenta drivers y micro.">
+        <!-- fila de potencia -->
+        <rect class="dg-box" x="6" y="34" width="96" height="42" rx="3"/>
+        <text class="dg-t" x="54" y="52" text-anchor="middle">ENTRADA</text>
+        <text class="dg-s" x="54" y="66" text-anchor="middle">127 / 220 V~</text>
+
+        <rect class="dg-box" x="124" y="34" width="96" height="42" rx="3"/>
+        <text class="dg-t" x="172" y="52" text-anchor="middle">FILTRO EMI</text>
+        <text class="dg-s" x="172" y="66" text-anchor="middle">fusible · MOV</text>
+
+        <rect class="dg-box" x="242" y="34" width="96" height="42" rx="3"/>
+        <text class="dg-t" x="290" y="52" text-anchor="middle">RECTIF.</text>
+        <text class="dg-s" x="290" y="66" text-anchor="middle">puente + precarga</text>
+
+        <rect class="dg-box-hot" x="360" y="34" width="110" height="42" rx="3"/>
+        <text class="dg-t" x="415" y="52" text-anchor="middle">BUS DC</text>
+        <text class="dg-s" x="415" y="66" text-anchor="middle">≈310 VDC</text>
+
+        <rect class="dg-box" x="492" y="34" width="86" height="42" rx="3"/>
+        <text class="dg-t" x="535" y="52" text-anchor="middle">PFC</text>
+        <text class="dg-s" x="535" y="66" text-anchor="middle">→380–400 V</text>
+
+        <rect class="dg-box-pwr" x="600" y="34" width="100" height="42" rx="3"/>
+        <text class="dg-t" x="650" y="52" text-anchor="middle">IPM</text>
+        <text class="dg-s" x="650" y="66" text-anchor="middle">6× IGBT</text>
+
+        <rect class="dg-box" x="722" y="34" width="110" height="42" rx="3"/>
+        <text class="dg-t" x="777" y="52" text-anchor="middle">COMPRESOR</text>
+        <text class="dg-s" x="777" y="66" text-anchor="middle">BLDC · U V W</text>
+
+        <path class="dg-l" d="M102 55h18M220 55h18M338 55h18M470 55h18M578 55h18M700 55h18"/>
+        <path class="dg-l" d="M120 55l-6-3v6zM238 55l-6-3v6zM356 55l-6-3v6zM488 55l-6-3v6zM596 55l-6-3v6zM718 55l-6-3v6z" fill="var(--line-strong)"/>
+
+        <text class="dg-cap" x="6" y="22">POTENCIA — ALTA TENSIÓN</text>
+
+        <!-- fuente conmutada -->
+        <path class="dg-l" d="M415 76v52"/>
+        <rect class="dg-box-pwr" x="330" y="128" width="170" height="46" rx="3"/>
+        <text class="dg-t" x="415" y="147" text-anchor="middle">FUENTE CONMUTADA</text>
+        <text class="dg-s" x="415" y="162" text-anchor="middle">flyback desde el bus</text>
+
+        <text class="dg-cap" x="330" y="118">AUXILIAR</text>
+
+        <!-- salidas -->
+        <path class="dg-l" d="M500 142h40v-74h60"/>
+        <text class="dg-s" x="545" y="136">15 V → drivers</text>
+
+        <path class="dg-l" d="M500 160h40v62h60"/>
+        <text class="dg-s" x="545" y="178">5 V / 3.3 V</text>
+
+        <rect class="dg-box" x="600" y="200" width="100" height="44" rx="3"/>
+        <text class="dg-t" x="650" y="219" text-anchor="middle">MICRO</text>
+        <text class="dg-s" x="650" y="234" text-anchor="middle">PWM · falla</text>
+
+        <path class="dg-l" d="M650 200V78"/>
+        <path class="dg-l" d="M700 222h22"/>
+        <rect class="dg-box" x="722" y="200" width="110" height="44" rx="3"/>
+        <text class="dg-t" x="777" y="219" text-anchor="middle">SENSORES</text>
+        <text class="dg-s" x="777" y="234" text-anchor="middle">NTC · shunt</text>
+
+        <path class="dg-l" d="M330 151h-60v71h60" />
+        <rect class="dg-box" x="150" y="200" width="120" height="44" rx="3"/>
+        <text class="dg-t" x="210" y="219" text-anchor="middle">COMUNICACIÓN</text>
+        <text class="dg-s" x="210" y="234" text-anchor="middle">interior ↔ exterior</text>
+
+        <text class="dg-s" x="6" y="280">Si la fuente conmutada no entrega sus 15 V limpios, el IPM conmuta mal y se destruye. Revísala antes de culpar al módulo.</text>
+      </svg>
+    </div>
+    <div class="chips" style="margin-top:10px">
+      <span class="chip hot">bus DC · letal</span>
+      <span class="chip pwr">etapas que más fallan</span>
+      <span class="chip">resto de la placa</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">1 · Diagnóstico en frío</h3><span class="chip">placa desconectada y descargada</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Punto</th><th>Medición</th><th>Bueno</th><th>Sospechoso</th></tr></thead>
+        <tbody>
+          <tr><td>Fusible</td><td>Continuidad</td><td class="v good">&lt; 1 Ω</td><td>Abierto → busca la causa, nunca sólo lo cambies</td></tr>
+          <tr><td>Varistor (MOV)</td><td>Visual + resistencia</td><td class="v good">&gt; 1 MΩ</td><td>Agrietado, quemado, resistencia baja</td></tr>
+          <tr><td>Puente rectificador</td><td>Diodos, los 4</td><td class="v good">0.4 – 0.6 V</td><td>Corto o abierto en cualquiera</td></tr>
+          <tr><td>Electrolíticos del bus</td><td>Capacitancia + ESR</td><td class="v good">±20 % nominal</td><td>Inflados, capacitancia baja, ESR alto</td></tr>
+          <tr><td>Resistencia de precarga</td><td>Ohms</td><td class="v good">valor marcado</td><td>Abierta → casi siempre falló el relé</td></tr>
+          <tr><td>Relé de precarga</td><td>Bobina + contactos</td><td class="v good">bobina con continuidad</td><td>Bobina abierta o contactos pegados</td></tr>
+          <tr><td>Pistas zona húmeda</td><td>Visual con lupa</td><td class="v good">limpias</td><td>Verdín y corrosión — es unidad <b>exterior</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">2 · Prueba del IPM en diodos</h3><span class="chip pwr">la prueba de oro</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Punta roja</th><th>Punta negra</th><th>Esperado</th><th>Lectura mala</th></tr></thead>
+        <tbody>
+          <tr><td class="v">N</td><td class="v">U, V, W</td><td class="v good">0.3 – 0.6 V en las tres</td><td class="v bad">0 V o fuera de rango</td></tr>
+          <tr><td class="v">U, V, W</td><td class="v">P</td><td class="v good">0.3 – 0.6 V en las tres</td><td class="v bad">0 V o fuera de rango</td></tr>
+          <tr><td class="v">P</td><td class="v">N</td><td class="v good">nunca corto</td><td class="v bad">corto → IPM destruido</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert info col" style="margin-top:10px">
+      <h3>El detalle que separa al que sabe</h3>
+      <p>Las tres fases tienen que <b>parecerse entre sí</b>. Una diferencia de más de <code>50 mV</code> entre U, V y W ya es señal, aunque las tres caigan dentro del rango bueno.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">3 · Fuente conmutada: síntoma → causa</h3><span class="chip pwr">la falla más común</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Síntoma</th><th>Revisa primero</th><th>Falla frecuente</th></tr></thead>
+        <tbody>
+          <tr><td>Sin ninguna salida, bus OK</td><td>Resistencias de arranque, Vcc del IC</td><td>Arranque abierta, IC abierto</td></tr>
+          <tr><td>Salidas presentes pero bajas</td><td>Electrolíticos de salida (ESR), diodos</td><td>Electrolítico seco</td></tr>
+          <tr><td>Enciende y apaga en ciclos</td><td>Realimentación, carga en corto</td><td>Opto / TL431 degradado, corto aguas abajo</td></tr>
+          <tr><td>MOSFET reventado</td><td>Snubber RCD, capacitor Y</td><td>Resistencia de snubber abierta</td></tr>
+          <tr><td>15 V bajos, IPM muere seguido</td><td>Rama de 15 V completa</td><td>Electrolítico y diodo de esa rama</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert warn col" style="margin-top:10px">
+      <h3>Cómo estudiarla sin energizar a 220</h3>
+      <p>Inyecta DC directamente en el bus (<code>P</code> y <code>N</code>) con una fuente aislada, subiendo de poco a poco: muchas de estas fuentes arrancan desde <code>80–150 VDC</code>, un rango bastante menos letal. Si no tienes con qué inyectar, usa la lámpara serie en la entrada AC y mide rápido.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">4 · Compresor BLDC</h3><span class="chip hot">decide si aceptas la placa</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Prueba</th><th>Bueno</th><th>Malo</th></tr></thead>
+        <tbody>
+          <tr><td>Resistencia entre fases (U-V, V-W, U-W)</td><td class="v good">iguales, 1 – 3 Ω</td><td class="v bad">diferencia notable o abierta</td></tr>
+          <tr><td>Aislamiento fase → carcasa</td><td class="v good">lo más alto que marque</td><td class="v bad">valores bajos → compresor a tierra</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert danger col" style="margin-top:10px">
+      <h3>Si el compresor está a tierra, no aceptes la placa</h3>
+      <p>Le vas a poner un IPM que morirá al primer arranque, y la garantía la vas a pagar tú. El IPM casi nunca muere solo: muere por <b>15 V bajos, pasta térmica seca, falta de gas o compresor con bajo aislamiento</b>. Corrige la causa o no entregues.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">5 · Sensores NTC</h3><span class="chip ok">dinero fácil</span></div>
+    <p class="lede col" style="margin-bottom:10px">Es la reparación más rápida que existe en estas placas: mídelos siempre. Los valores nominales cambian por fabricante y por posición, así que confírmalos contra el manual de servicio del modelo antes de sustituir.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Posición</th><th>Qué vigila</th><th>Cómo se mide</th></tr></thead>
+        <tbody>
+          <tr><td>Ambiente (interior)</td><td>Temperatura del cuarto</td><td>Resistencia a 25 °C contra su nominal; baja al calentarlo con la mano</td></tr>
+          <tr><td>Tubería / serpentín</td><td>Evaporación y congelamiento</td><td>Igual, y verifica que responda al cambio de temperatura</td></tr>
+          <tr><td>Descarga del compresor</td><td>Sobrecalentamiento</td><td>Nominal alto; abierto = código de error de sensor</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="alert warn col">
+    <h3>Cuándo rendirse</h3>
+    <p>Micro con firmware propietario, placa carbonizada o corrosión masiva. Aprender a rechazar rápido es una habilidad rentable, no una derrota: cada hora gastada en una placa irrecuperable es una hora que no cobras.</p>
+  </div>
+</section>
+
+<!-- ======================= PROPAGACIÓN ======================= -->
+<section class="view" id="v-propagacion" hidden>
+  <div class="col">
+    <p class="eyebrow">Propagación de fallas</p>
+    <h2 class="sec">Si esto murió, qué se llevó por delante</h2>
+    <p class="lede" style="margin-top:8px">Un componente en falla casi nunca está solo: o lo mató algo aguas arriba, o él mató algo aguas abajo. Cambiar la pieza quemada sin seguir la cadena es la razón número uno de que una placa reparada regrese en tres semanas.</p>
+  </div>
+
+  <div class="alert warn col">
+    <h3>Por qué esta tabla va por bloque y no por designador</h3>
+    <p>«C11» no significa lo mismo en una placa Midea que en una Mirage: cada fabricante numera su serigrafía como quiere, y <b>los esquemáticos a nivel componente son propietarios</b> — los manuales de servicio publican diagrama de PCB, conectores, zona del IPM y sensores, no el circuito completo. Lo que sí es universal es la topología. Ubica el componente en su bloque y la cadena de propagación es la misma en cualquier marca.</p>
+  </div>
+
+  <div class="col">
+    <h3 class="sub" style="margin-bottom:9px">Las tres direcciones</h3>
+    <ul class="bul">
+      <li><b>Un corto propaga aguas arriba</b>, hacia la protección: fusible, resistencia de sensado, pista.</li>
+      <li><b>Una sobretensión propaga aguas abajo</b> y destruye todo lo alimentado. Es la más cara.</li>
+      <li><b>Una degradación — ESR alto, capacitancia perdida — propaga aguas abajo despacio</b>, y mata al IPM semanas después. Es la que te devuelven en garantía.</li>
+    </ul>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Matriz de propagación</h3><span class="chip pwr">revisa en ese orden</span></div>
+    <div class="tablebox">
+      <table style="min-width:640px">
+        <thead><tr><th>Lo que encontraste en falla</th><th>Qué provoca</th><th>Revisa también, en este orden</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Opto / TL431</b><br><span class="chip hot">el más destructivo</span></td>
+            <td>La fuente sale de regulación: sobretensión en <b>todas</b> las salidas</td>
+            <td>Micro, EEPROM, reguladores lineales, relés, y cualquier cosa de 5 V y 12 V. Antes de energizar, verifica cada riel contra su nominal</td>
+          </tr>
+          <tr>
+            <td><b>Resistencia del snubber RCD</b> (abierta)</td>
+            <td>El pico del drenador no se disipa y revienta el MOSFET</td>
+            <td>MOSFET, resistencia de source o sensado, fusible, IC de control, diodo y capacitor del propio snubber</td>
+          </tr>
+          <tr>
+            <td><b>MOSFET de la fuente</b> (en corto)</td>
+            <td>Pone el bus sobre el sensado y sobre el IC</td>
+            <td>Resistencia de source, IC de conmutación, fusible, snubber completo, resistencias de arranque</td>
+          </tr>
+          <tr>
+            <td><b>Electrolítico de Vcc del IC</b> (seco)</td>
+            <td>El IC se queda sin alimentación en cada ciclo: arranca y se cae</td>
+            <td>IC de conmutación, resistencias de arranque, diodo del devanado auxiliar, MOSFET (trabajó sobrecalentado)</td>
+          </tr>
+          <tr>
+            <td><b>Electrolítico de la rama de 15 V</b></td>
+            <td>Ripple en los drivers: el IPM conmuta lento y se calienta</td>
+            <td><b>IPM</b>, diodo rectificador de esa rama, capacitores de bootstrap. Si el IPM ya murió, esta era la causa</td>
+          </tr>
+          <tr>
+            <td><b>Capacitor de bootstrap</b></td>
+            <td>El driver de la rama alta queda sin tensión y el IGBT superior conmuta mal</td>
+            <td>IPM, diodo de bootstrap, resistencias shunt, y la rama de 15 V completa</td>
+          </tr>
+          <tr>
+            <td><b>Electrolíticos del bus DC</b></td>
+            <td>Ripple alto en el bus: todo aguas abajo trabaja con tensión sucia</td>
+            <td>IPM, PFC (bobina, interruptor, diodo rápido), puente rectificador. El compresor vibra o protege sin que la placa esté mal</td>
+          </tr>
+          <tr>
+            <td><b>Resistencia de precarga</b> (abierta)</td>
+            <td>El relé no cerró y la corriente de arranque la abrió</td>
+            <td>Relé de precarga, transistor que lo manda, diodo de rueda libre, pin del micro. <b>No la cambies sola</b>: vuelve a abrirse</td>
+          </tr>
+          <tr>
+            <td><b>Resistencias shunt</b> (abiertas o fuera de valor)</td>
+            <td>El micro lee mal la corriente: protege sin causa, o no protege cuando debe</td>
+            <td>IPM, amplificador de sensado si lo hay, pin de sensado del micro</td>
+          </tr>
+          <tr>
+            <td><b>Capacitor X o Y del filtro EMI</b> (en corto)</td>
+            <td>Corto franco a la línea</td>
+            <td>Fusible, MOV, puente rectificador</td>
+          </tr>
+          <tr>
+            <td><b>MOV / varistor</b> (degradado)</td>
+            <td>Deja pasar transitorios de línea hacia adentro</td>
+            <td>Fusible, fuente conmutada completa, rectificador. Si murió por descarga, revisa toda la entrada</td>
+          </tr>
+          <tr>
+            <td><b>IPM</b> (en corto)<br><span class="chip hot">nunca muere solo</span></td>
+            <td>Es el síntoma, no la causa</td>
+            <td><b>Causa raíz primero:</b> rama de 15 V, pasta térmica, aislamiento del compresor, carga de gas. <b>Daño colateral:</b> shunts, bootstrap, fusible, capacitores del bus</td>
+          </tr>
+          <tr>
+            <td><b>Optoacoplador de comunicación</b></td>
+            <td>La exterior no habla con la interior: código de comunicación</td>
+            <td>Resistencias de línea de comunicación, el otro opto del par, el riel que los alimenta</td>
+          </tr>
+          <tr>
+            <td><b>NTC</b> (abierto o fuera de rango)<br><span class="chip ok">la falla buena</span></td>
+            <td>Sólo código de error de sensor</td>
+            <td>No propaga. Cámbialo, verifica el nominal contra el manual y entrega</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Cómo pedirme la cadena de una placa concreta</h3></div>
+    <p class="lede" style="margin-bottom:10px">Para darte la lista exacta en vez de la genérica necesito ubicar el componente. Mándame lo que tengas de esto:</p>
+    <ul class="bul">
+      <li><b>Marca y modelo</b> del equipo, y si es placa de interior o de exterior.</li>
+      <li><b>Foto de la placa por ambos lados</b>, y un acercamiento a la zona del componente. Con la serigrafía y las pistas visibles puedo trazar el bloque.</li>
+      <li><b>Lo que dice encima del componente</b> y el de al lado: valor, código del IC, marca del IPM.</li>
+      <li><b>Qué mediste</b> y con qué lo mediste.</li>
+    </ul>
+    <hr class="rule" style="margin:13px 0">
+    <p class="lede">Con eso te devuelvo la cadena de propagación de esa placa, qué medir en orden y qué causa raíz descartar antes de entregarla. Lo que encuentres se va sumando a esta matriz.</p>
+  </div>
+</section>
+
+<!-- ======================= MARCAS ======================= -->
+<section class="view" id="v-marcas" hidden>
+  <div class="col">
+    <p class="eyebrow">Por marca</p>
+    <h2 class="sec">Del código de error a la lista de componentes</h2>
+    <p class="lede" style="margin-top:8px">Cualquier sitio te dice qué significa un código. Lo que casi nadie traduce es qué medir en la placa cuando lo lees. Esta es esa traducción, para las tres marcas que más vas a ver en CDMX.</p>
+  </div>
+
+  <div class="alert danger col">
+    <h3>Lee esto antes de usar la tabla</h3>
+    <p>Los códigos <b>cambian entre series de una misma marca</b>, y en Mirage encontré fuentes públicas que se contradicen abiertamente — la misma letra y número con dos significados distintos según el sitio. Lo marcado con <span class="chip hot">verificar</span> es exactamente eso: úsalo como pista, nunca como diagnóstico, y confírmalo contra el manual de servicio del modelo que tienes en el banco. Un código mal interpretado te hace cambiar la pieza equivocada y perder al técnico que te lo mandó.</p>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">La tabla que de verdad importa: familias de falla</h3><span class="chip pwr">tres marcas, un solo procedimiento</span></div>
+    <p class="lede col" style="margin-bottom:10px">Las marcas nombran distinto la misma física. Agrupadas por familia, tu trabajo en el banco es idéntico.</p>
+    <div class="tablebox">
+      <table style="min-width:720px">
+        <thead><tr><th>Familia de falla</th><th>Mirage</th><th>Midea</th><th>LG</th><th>Qué medir, en orden</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Sobrecorriente / IPM</b><br><span class="chip pwr">tu pan de cada día</span></td>
+            <td class="v">P0</td>
+            <td class="v">P0 · P4</td>
+            <td class="v">CH21</td>
+            <td>Prueba del IPM en diodos → rama de 15 V → capacitores de bootstrap → resistencias shunt → aislamiento del compresor → pasta térmica. <b>Nunca cambies el IPM sin cerrar esta lista.</b></td>
+          </tr>
+          <tr>
+            <td><b>Comunicación interior ↔ exterior</b></td>
+            <td class="v">E1 <span class="chip hot">verificar</span></td>
+            <td class="v">E1</td>
+            <td class="v">CH05</td>
+            <td>Cable de interconexión y conectores → optoacopladores del par (los dos) → resistencias de línea → riel que los alimenta. Si el riel está bajo, el problema es la fuente, no la comunicación</td>
+          </tr>
+          <tr>
+            <td><b>Sensor de temperatura</b><br><span class="chip ok">la fácil</span></td>
+            <td class="v">E2 · E5/E6 <span class="chip hot">verificar</span></td>
+            <td class="v">F1 (T4 exterior)</td>
+            <td class="v">—</td>
+            <td>NTC fuera de rango o abierto. Mide contra el nominal del manual, verifica que responda al calor de la mano, cámbialo y entrega. No propaga a nada</td>
+          </tr>
+          <tr>
+            <td><b>Sobretensión de línea</b></td>
+            <td class="v">—</td>
+            <td class="v">P1</td>
+            <td class="v">—</td>
+            <td>MOV y fusible → entrada completa → después verifica cada riel de la fuente contra su nominal antes de energizar el resto</td>
+          </tr>
+          <tr>
+            <td><b>Compresor sobrecargado o trabado</b></td>
+            <td class="v">—</td>
+            <td class="v">P2 (alta temp.)</td>
+            <td class="v">CH26</td>
+            <td>Resistencia entre fases y aislamiento a carcasa. Si está a tierra, <b>rechaza la placa</b>: el IPM nuevo muere al primer arranque</td>
+          </tr>
+          <tr>
+            <td><b>Ventilador interior fuera de control</b></td>
+            <td class="v">—</td>
+            <td class="v">E3</td>
+            <td class="v">—</td>
+            <td>Motor DC y su conector de realimentación (hall) → riel que lo alimenta → driver del motor en la placa interior</td>
+          </tr>
+          <tr>
+            <td><b>Detección de cruce por cero</b></td>
+            <td class="v">—</td>
+            <td class="v">E2</td>
+            <td class="v">—</td>
+            <td>Circuito de cruce por cero de la placa interior: resistencias de alto valor desde la línea (se abren), optoacoplador de muestreo, y el pin del micro. Falla específica y muy agradecida</td>
+          </tr>
+          <tr>
+            <td><b>Carga de refrigerante</b></td>
+            <td class="v">—</td>
+            <td class="v">EC</td>
+            <td class="v">—</td>
+            <td>No es falla de placa. Devuélvela y dile al técnico que revise fuga: si la carga está baja, el IPM que le pongas se vuelve a calentar</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Mirage</h3><span class="chip">la más común en CDMX</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Código</th><th>Significado publicado</th><th>En el banco</th></tr></thead>
+        <tbody>
+          <tr><td class="v">P0</td><td>Módulo IPM o IGBT de la tarjeta de condensador. La señal que el IPM manda al micro del compresor es anormal y el equipo se apaga</td><td>El código más valioso para ti: es una placa exterior y es tu especialidad. Sigue la familia de sobrecorriente completa</td></tr>
+          <tr><td class="v">E1</td><td>Comunicación entre tarjeta de evaporador y de condensador <span class="chip hot">verificar</span> — otras fuentes lo dan como sensor de temperatura interior</td><td>Mide primero el riel de los optos. Si está sano, sigue el par de optoacopladores</td></tr>
+          <tr><td class="v">E2</td><td>Sensor del evaporador de la unidad interior</td><td>NTC. Rápido y barato</td></tr>
+          <tr><td class="v">E5 / E6</td><td><span class="chip hot">verificar</span> Las fuentes públicas discrepan: unas los dan como comunicación y sobrecorriente, otras como sensores exterior y evaporador</td><td>No asumas. Mide NTC y riel de comunicación, y deja que la medición decida</td></tr>
+          <tr><td class="v">AP</td><td>Módulo WiFi en modo configuración</td><td>No es falla. Si un técnico te manda una placa por esto, cóbrale el diagnóstico y edúcalo — te lo va a agradecer</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Midea</h3><span class="chip">la mejor documentada</span></div>
+    <p class="lede col" style="margin-bottom:10px">Midea publica tablas de autodiagnóstico razonablemente consistentes, y su familia E / F / P separa limpio: <b>E</b> es unidad interior, <b>F</b> es sensor de unidad exterior, <b>P</b> es protección.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Código</th><th>Significado</th><th>En el banco</th></tr></thead>
+        <tbody>
+          <tr><td class="v">P0</td><td>Protección de alta corriente: cableado, IPM defectuoso, ventilador exterior, compresor o PCB dañada</td><td>Familia de sobrecorriente completa. Descarta compresor y ventilador antes de culpar al IPM</td></tr>
+          <tr><td class="v">P4</td><td>Falla del drive del compresor — la placa inversora exterior</td><td>Placa exterior, directo a tu banco. Es el código que más te conviene que aprendan a leer tus clientes</td></tr>
+          <tr><td class="v">P1</td><td>Sobretensión o protección por sobretensión activada</td><td>Entrada: MOV, fusible. Luego verifica cada riel antes de energizar</td></tr>
+          <tr><td class="v">P2</td><td>Alta temperatura del compresor</td><td>Carga, condensador sucio, ventilador exterior. Rara vez es la placa</td></tr>
+          <tr><td class="v">E1</td><td>Comunicación interior ↔ exterior</td><td>Optos del par, resistencias de línea, riel de alimentación</td></tr>
+          <tr><td class="v">E2</td><td>Señal de cruce por cero</td><td>Placa interior: resistencias de alto valor desde la línea, opto de muestreo, pin del micro</td></tr>
+          <tr><td class="v">E3</td><td>Velocidad del ventilador interior fuera de control</td><td>Motor DC, conector de hall, driver en placa interior</td></tr>
+          <tr><td class="v">F1</td><td>Sensor T4, temperatura ambiente exterior</td><td>NTC de la exterior</td></tr>
+          <tr><td class="v">EC</td><td>Falta de refrigerante</td><td>No es placa. Devuélvela con nota de fuga</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">LG</h3><span class="chip">códigos CH</span></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Código</th><th>Significado</th><th>En el banco</th></tr></thead>
+        <tbody>
+          <tr><td class="v">CH21</td><td>Pico DC o sobrecorriente del compresor: la exterior detectó corriente sobre el límite seguro. Causas publicadas: compresor con problema mecánico o eléctrico, PCB exterior con componentes dañados, cableado y conectores sueltos o corroídos</td><td>Tu código estrella en LG. Familia de sobrecorriente completa, y revisa conectores corroídos antes que nada — es unidad exterior</td></tr>
+          <tr><td class="v">CH05</td><td>Comunicación anormal interior ↔ exterior: conector de transmisión desconectado, cables mal conectados, placa exterior de comunicación</td><td>Empieza por el conector de transmisión y el cable; LG falla ahí más que en el silicio</td></tr>
+          <tr><td class="v">CH26</td><td>Compresor sobrecargado o rotor bloqueado</td><td>Mide fases y aislamiento. Si está a tierra, rechaza</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert warn col" style="margin-top:10px">
+      <h3>El consejo del fabricante, y por qué te conviene saberlo</h3>
+      <p>LG indica reiniciar desde el interruptor, esperar cinco minutos y ver si el código se borra; si CH21 vuelve, el equipo se queda apagado hasta que lo revise un técnico. Úsalo al revés: cuando un técnico te mande una placa por CH21 intermitente, pregunta si ya hizo ese reinicio. Si el código volvió, hay daño real y tu diagnóstico empieza en el IPM. Si no volvió, puede haber sido la línea eléctrica y la placa está sana.</p>
+    </div>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Lo que falta por confirmar</h3></div>
+    <ul class="bul">
+      <li>Mirage E5 y E6: las fuentes públicas se contradicen. Se resuelve con el manual de servicio de la serie exacta.</li>
+      <li>LG: faltan CH10, CH38 y el resto de la familia CH con detalle confiable.</li>
+      <li>Falta la tabla de nominales de NTC por marca y posición — es lo que convierte la reparación de sensores en trabajo de cinco minutos.</li>
+      <li>Faltan los códigos por parpadeo de LED, que es como diagnostican las placas sin display.</li>
+    </ul>
+    <hr class="rule" style="margin:13px 0">
+    <p class="lede">Conforme los vayas confirmando en el banco, esta sección se corrige. Un dato medido por ti vale más que cualquier tabla de internet, incluida esta.</p>
+  </div>
+</section>
+
+<!-- ======================= BITÁCORA ======================= -->
+<section class="view" id="v-bitacora" hidden>
+  <div class="col">
+    <p class="eyebrow">Bitácora</p>
+    <h2 class="sec">Placas que han pasado por el banco</h2>
+    <p class="lede" style="margin-top:8px">Cada placa que entra se registra aquí: lo que reportó el técnico, lo que encontraste y cómo terminó. Al mes tendrás el dato que ninguna estimación te da — tu porcentaje real de rechazo y qué marcas se repiten.</p>
+  </div>
+
+  <div class="stats col" id="stats"></div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Registrar una placa</h3></div>
+    <form class="form" id="form-placa">
+      <div class="frow">
+        <label class="f">Marca
+          <input id="f-marca" name="marca" placeholder="Mirage, Midea, LG…" autocomplete="off" required>
+        </label>
+        <label class="f">Modelo
+          <input id="f-modelo" name="modelo" placeholder="Opcional" autocomplete="off">
+        </label>
+        <label class="f">Estado
+          <select id="f-estado" name="estado">
+            <option value="banco">En banco</option>
+            <option value="reparada">Reparada</option>
+            <option value="entregada">Entregada</option>
+            <option value="rechazada">Rechazada</option>
+          </select>
+        </label>
+      </div>
+      <label class="f">Síntoma que reportó el técnico
+        <input id="f-sintoma" name="sintoma" placeholder="No enciende, protege por corriente, código E5…" autocomplete="off">
+      </label>
+      <label class="f">Qué encontraste
+        <textarea id="f-notas" name="notas" placeholder="Electrolíticos de la rama de 15 V secos; IPM sano."></textarea>
+      </label>
+      <div class="btnrow">
+        <button type="submit" class="btn">Guardar placa</button>
+        <span class="foot" id="form-msg"></span>
+      </div>
+    </form>
+  </div>
+
+  <div class="col">
+    <div class="panel-head"><h3 class="sub">Registro</h3><span class="foot" id="sync"><span class="dot"></span><span id="sync-t">Conectando…</span></span></div>
+    <div class="cards" id="placas"></div>
+  </div>
+</section>
+
+<!-- ======================= NEGOCIO ======================= -->
+<section class="view" id="v-negocio" hidden>
+  <div class="col">
+    <p class="eyebrow">El negocio</p>
+    <h2 class="sec">El margen está probado. El volumen no.</h2>
+    <p class="lede" style="margin-top:8px">Las empresas que aparecen en el mercado mexicano <b>venden tarjetas</b> de reemplazo. Casi nadie anuncia repararlas, y en los foros del gremio hay gente preguntando quién lo hace. El hueco es real; lo que no está garantizado es cuántas placas llegan a tu banco.</p>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Estructura de precio por placa</h3></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Concepto</th><th>Rango de referencia (MXN)</th></tr></thead>
+        <tbody>
+          <tr><td>Lo que cobra el gremio por <i>cambiar</i> la tarjeta</td><td class="v">4,000 – 9,000</td></tr>
+          <tr><td>Placa nueva — tu competencia real</td><td class="v">2,500 – 7,000</td></tr>
+          <tr><td>Tus componentes por reparación</td><td class="v">100 – 800</td></tr>
+          <tr><td>Lo que cobras al técnico</td><td class="v">1,200 – 2,000</td></tr>
+          <tr><td>Lo que ese técnico le cobra a su cliente</td><td class="v">2,500 – 4,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede col" style="margin-top:10px">Son rangos de referencia, no precios confirmados: calíbralos con tres llamadas a la competencia. Lo sólido es la estructura — entras por debajo de la placa nueva, el técnico gana más que revendiendo tarjeta, el cliente paga la mitad, y tu margen queda en <b>60–85 %</b>.</p>
+  </div>
+
+  <div class="alert warn col">
+    <h3>El riesgo no es técnico, es comercial</h3>
+    <p>Puedes ser excelente reparando y tener el banco vacío. Lo que determina cuánto entra no es tu habilidad sino cuántos talleres saben que existes. Los primeros dos meses pueden ser de 0 a 3 placas en total — si no aguantas ese arranque seco, mejor saberlo antes de comprar la fuente.</p>
+  </div>
+
+  <div class="col">
+    <h3 class="sub" style="margin-bottom:10px">Lo que te puede salir mal</h3>
+    <ul class="bul">
+      <li><b>Entre 20 % y 35 % de las placas no se arreglan</b> por economía: firmware propietario, placa carbonizada, corrosión masiva. Con «si no se arregla no se cobra», esas horas son pérdida. Cuéntalas desde la primera.</li>
+      <li><b>Módulos IPM falsificados.</b> Pones uno falso, dura tres semanas, y la garantía se come la ganancia de tres trabajos. Al principio canibaliza módulos de placas muertas antes que comprar barato en línea.</li>
+      <li><b>Disputa de garantía.</b> Devuelves la placa buena, el equipo sigue fallando por el compresor, y el técnico te culpa. Se evita con una línea escrita: <i>la garantía cubre la falla reparada por 90 días, no cubre el equipo ni fallas de otro origen</i>.</li>
+      <li><b>El techo.</b> Esto es tiempo tuyo vendido por hora. Da buen margen y no escala solo.</li>
+    </ul>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Validación de 10 días</h3><span class="chip ok">cuesta cero</span></div>
+    <p class="lede" style="margin-bottom:4px">No hace falta creer en el negocio: se comprueba. Si a los diez días tienes cero o una consulta, el canal no existe como pensamos y lo dejaste sin haber gastado un peso. Cinco o más, hay negocio y ahí sí compras la fuente.</p>
+    <div class="meterrow" style="margin:12px 0 2px">
+      <div class="meter" style="flex:1"><i id="bar-val" style="width:0%"></i></div>
+      <span class="num" id="pct-val">0 / 4</span>
+    </div>
+    <ul class="tasks" id="validacion"></ul>
+  </div>
+
+  <div class="alert info col">
+    <h3>Por qué este negocio y no otro</h3>
+    <p>Es trabajo de banco: se hace a las 20:00 y los domingos, sin depender del tráfico, del clima ni de subirte a una azotea. Los clientes son técnicos y talleres, no público. Y no depende de CDMX: las placas viajan por paquetería, y Mérida, Cancún, Monterrey y Mexicali tienen muchísimos más equipos inverter que la capital.</p>
+  </div>
+</section>
+
+<!-- ======================= RECURSOS ======================= -->
+<section class="view" id="v-recursos" hidden>
+  <div class="col">
+    <p class="eyebrow">Recursos</p>
+    <h2 class="sec">Material y herramienta</h2>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Estudio</h3></div>
+    <div class="linklist">
+      <a href="https://www.frd.utn.edu.ar/wp-content/uploads/2021/03/TecnologiaInverterEnEquiposDeAireAcondicionadoSplit-1.pdf">Tecnología inverter — UTN, parte 1 <span>El recorrido de la energía y el diagrama de bloques. Es la base de la semana 1.</span></a>
+      <a href="https://www.frd.utn.edu.ar/wp-content/uploads/2021/02/Tecnologia-Inverter-En-Equipos-De-Aire-Acondicionado-Split-2-1.pdf">Tecnología inverter — UTN, parte 2 <span>Etapa de potencia y control. Semana 3.</span></a>
+      <a href="https://www.frd.utn.edu.ar/wp-content/uploads/2021/02/Tecnologia-Inverter-En-Equipos-De-Aire-Acondicionado-Split-3.pdf">Tecnología inverter — UTN, parte 3 <span>Diagnóstico y fallas. Semana 3 y 4.</span></a>
+      <a href="https://cursa.app/es/curso-gratis/aire-acondicionado-split-invertes-cgaf">Curso gratuito de split inverter <span>Versión en línea del temario de 21 horas.</span></a>
+      <a href="https://acservicetech.com/product-page/libro-electronico-procedimientos-de-operación-y-servicio-del-inversor-minisplit">Procedimientos de servicio del inversor minisplit <span>Libro en español, de pago. Útil cuando ya estés cobrando.</span></a>
+      <a href="https://www.cosmos.com.mx/foros/pregunta/quisiera-saber-que-empresa-repara-tarjetas-inverte-157454.html">Foro: «¿qué empresa repara tarjetas inverter?» <span>Demanda insatisfecha documentada. Tu mercado preguntando en voz alta.</span></a>
+    </div>
+    <hr class="rule" style="margin:14px 0 12px">
+    <h4 class="eyebrow" style="margin-bottom:9px">Códigos por marca</h4>
+    <div class="linklist">
+      <a href="https://iprpartesyrepuestos.com/wp-content/uploads/2021/01/CODIGOS-MIDEA-INVERTER-1.pdf">Midea inverter — tabla de autodiagnóstico (PDF) <span>La mejor documentada de las tres. Descárgala y tenla en el teléfono.</span></a>
+      <a href="https://www.midea.es/wp-content/uploads/2019/08/P0-DOM.pdf">Midea — diagnóstico del P0 (PDF) <span>El fabricante explicando su propia protección de alta corriente. Oro para la familia IPM.</span></a>
+      <a href="https://www.scribd.com/document/579926185/Errores-Mirage">Mirage — lista de códigos de error <span>Úsala con reserva: discrepa con otras fuentes en E5 y E6.</span></a>
+      <a href="https://www.lg.com/mx/soporte/soporte-de-producto/solucion-de-problemas/help-library/cs-CT20178057-20153416138733/">LG México — error CH05 <span>Del propio fabricante, que es la fuente que no se contradice.</span></a>
+      <a href="https://climajobs.com/codigos-error/lg/ch21-corriente-alta-compresor-inverter">LG CH21 — corriente alta del compresor <span>Causas publicadas y orden de revisión.</span></a>
+      <a href="https://t-inverter.com/curso/curso-tarjetas-inverter-principales-defectos-1/">Principales defectos de tarjetas inverter <span>Curso en español centrado en fallas reales de placa.</span></a>
+    </div>
+    <hr class="rule" style="margin:14px 0 12px">
+    <p class="lede">Lo que más vale y no cuesta nada: los <b>manuales de servicio</b> de Mirage, Mabe, Midea, LG y Samsung en PDF. Traen diagramas y tablas de códigos de error, y un código leído bien te ahorra dos horas de banco.</p>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">Herramienta</h3></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Equipo</th><th>Estado</th><th>Para qué</th></tr></thead>
+        <tbody>
+          <tr><td>Cautín</td><td class="v good">lo tienes</td><td>Trabajo through-hole</td></tr>
+          <tr><td>Estación de aire caliente</td><td class="v good">lo tienes</td><td>SMD y desoldado del IPM</td></tr>
+          <tr><td>Multímetro con capacitancia</td><td class="v good">lo tienes</td><td>Todo el diagnóstico en frío</td></tr>
+          <tr><td>Resistencia 10–20 kΩ / 5 W</td><td class="v">pendiente · ~$20</td><td>Descargar el bus. No es opcional</td></tr>
+          <tr><td>Lámpara serie (foco 100 W)</td><td class="v">pendiente · ~$50</td><td>Energizar sin volar el IPM nuevo</td></tr>
+          <tr><td>Fuente ATX reciclada</td><td class="v">pendiente · $0–200</td><td>12 V y 5 V para la sección de control</td></tr>
+          <tr><td>Fuente de laboratorio 30 V / 5 A</td><td class="v">etapa 1 · cuando cobres</td><td>Sustituye a la ATX con control fino</td></tr>
+          <tr><td>Probador ESR</td><td class="v">etapa 1 · cuando cobres</td><td>Electrolíticos sin desoldar</td></tr>
+          <tr><td>Osciloscopio usado, 2 canales</td><td class="v">etapa 2 · con flujo</td><td>Fuentes que arrancan y se caen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert info col" style="margin-top:10px">
+      <h3>Ninguna etapa sale de tu bolsillo de golpe</h3>
+      <p>Cada etapa la paga la anterior. Con lo que ya tienes, más una ATX reciclada y placas muertas regaladas, tu inversión para empezar a practicar es prácticamente cero.</p>
+    </div>
+  </div>
+
+  <div class="alert warn col">
+    <h3>Lo que no vas a poder ver sin osciloscopio</h3>
+    <p>El modo <i>hiccup</i>, el rizado real de conmutación y la forma de onda en el drenador. Puedes reparar la mayoría de las fuentes midiendo DC y ESR, pero cuando una arranque y se caiga sin razón aparente, esa es la que necesita osciloscopio. Déjala a un lado: es limitación de instrumento, no tuya.</p>
+  </div>
+
+  <div class="col foot">
+    <span>Esta guía se actualiza conforme avances. Dile a Claude qué encontraste y qué falla se repitió, y entra aquí.</span>
+  </div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+
+/* ---------- contenido del plan ---------- */
+const WEEKS = [
+  { n:"Semana 1", t:"Mapa de la placa y diagnóstico en frío",
+    goal:"Tomar cualquier placa desconocida y, en 20 minutos, dibujar su diagrama de bloques y decir qué está muerto sin energizarla.",
+    chips:["entrada AC","bus DC","en frío"],
+    tasks:[
+      ["s1a","Leer el PDF 1 de la UTN completo","Teoría · el recorrido de la energía"],
+      ["s1b","Marcar con plumón las 7 secciones en dos placas muertas","Suena tonto; es lo que da velocidad después"],
+      ["s1c","Correr el checklist de diagnóstico en frío en esas dos placas",""],
+      ["s1d","Dominar la prueba del IPM en diodos desde P, N y U/V/W","Compara las tres fases entre sí"],
+      ["s1e","Imprimir tu hoja de diagnóstico en frío","Es tu formato de trabajo real"],
+      ["s1f","Montar la lámpara serie y la resistencia de descarga","Seguridad antes que nada"]
+    ]},
+  { n:"Semana 2", t:"Fuentes conmutadas",
+    goal:"Es la semana más rentable del plan: la fuente auxiliar muerta es la falla número uno y es la que convierte una placa que el técnico ya dio por perdida en una placa viva.",
+    chips:["flyback","15 V drivers","snubber"],
+    tasks:[
+      ["s2a","Topología flyback arrancando desde el bus de 310–400 VDC",""],
+      ["s2b","Cadena de arranque: resistencias de alto valor, capacitor de Vcc, umbral del IC",""],
+      ["s2c","Realimentación: optoacoplador + TL431, o devanado auxiliar",""],
+      ["s2d","Snubber RCD: por qué su resistencia abierta mata al MOSFET","Si lo cambias sin revisar el snubber, vuelve a morir"],
+      ["s2e","Revivir la fuente de una placa muerta","Inyectando DC en el bus, no a 220"],
+      ["s2f","Revivir una segunda fuente",""],
+      ["s2g","Llenar tu tabla síntoma → causa con lo que encontraste",""]
+    ]},
+  { n:"Semana 3", t:"IPM, PFC y compresor BLDC",
+    goal:"Cambiar un IPM bien, y sobre todo saber por qué murió.",
+    chips:["IGBT","bootstrap","shunt"],
+    tasks:[
+      ["s3a","Leer los PDF 2 y 3 de la UTN",""],
+      ["s3b","IPM por dentro: 6 IGBT, drivers, bootstrap y protección de sobrecorriente",""],
+      ["s3c","Revisar capacitores de bootstrap y resistencias shunt","Casi nadie los revisa y secos arruinan el módulo nuevo"],
+      ["s3d","PFC: bobina, interruptor, diodo rápido y por qué el bus sube a 380–400 V",""],
+      ["s3e","Desoldar un IPM con aire caliente y volver a montarlo","Pasta térmica nueva y apriete en cruz"],
+      ["s3f","Medir un compresor BLDC: resistencia entre fases y aislamiento a carcasa",""]
+    ]},
+  { n:"Semana 4", t:"Sensores, comunicación y protocolo",
+    goal:"Cerrar el diagnóstico completo y dejar lista la parte de negocio.",
+    chips:["NTC","códigos","garantía"],
+    tasks:[
+      ["s4a","NTC: curva, nominal por posición y cómo medirlos",""],
+      ["s4b","Reunir las tablas de códigos de error de Mirage, Mabe, Midea, LG y Samsung","Tu activo más valioso y no cuesta nada"],
+      ["s4c","Comunicación interior–exterior: optoacopladores y resistencias de línea",""],
+      ["s4d","Fijar tu criterio para rechazar una placa",""],
+      ["s4e","Escribir tu ficha de ingreso y el texto de garantía",""],
+      ["s4f","Examen final: una placa muerta de cero a diagnóstico en menos de 90 minutos","Si lo logras, estás listo para cobrar"]
+    ]}
+];
+
+const VALID = [
+  ["v1","Publicar la oferta en 5 grupos de refrigeración de Facebook","«Reparo placas inverter a nivel componente, no las cambio»"],
+  ["v2","Visitar 3 casas de refacciones de refrigeración y dejar contacto","El del mostrador es tu mejor vendedor"],
+  ["v3","Conseguir 4 o 5 placas muertas gratis","Es a la vez práctica y primer contacto comercial"],
+  ["v4","Contar las consultas reales recibidas a los 10 días","0–1: el canal no existe. 5 o más: hay negocio"]
+];
+
+const ALL_IDS = WEEKS.flatMap(w => w.tasks.map(t => t[0]));
+
+/* ---------- estado ---------- */
+let items = {};              // id -> true
+let placas = [];             // {id, marca, modelo, sintoma, notas, estado, ingreso}
+let db = null, uid = null;
+let writing = Promise.resolve();
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* respaldo local, siempre tolerante a fallos */
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+
+/* ---------- render ---------- */
+const CHECK = '<span class="box"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.3l2.6 2.6L10 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+
+function taskLi(id, label, hint){
+  const on = !!items[id];
+  return '<li><button class="chk" type="button" data-id="' + id + '" aria-pressed="' + on + '">' +
+    CHECK + '<span class="lbl">' + esc(label) + (hint ? '<em>' + esc(hint) + '</em>' : '') + '</span></button></li>';
+}
+
+function renderWeeks(){
+  $("#weeks").innerHTML = WEEKS.map(w => {
+    const done = w.tasks.filter(t => items[t[0]]).length;
+    const pct = Math.round(done / w.tasks.length * 100);
+    return '<article class="week"><header>' +
+      '<div class="wtop"><span class="wnum">' + esc(w.n) + '</span><h3>' + esc(w.t) + '</h3></div>' +
+      '<p class="goal"><b>Meta.</b> ' + esc(w.goal) + '</p>' +
+      '<div class="chips">' + w.chips.map(c => '<span class="chip">' + esc(c) + '</span>').join("") + '</div>' +
+      '<div class="meterrow" style="margin-top:4px"><div class="meter" style="flex:1"><i style="width:' + pct + '%"></i></div>' +
+      '<span class="num">' + done + ' / ' + w.tasks.length + '</span></div>' +
+      '</header><ul class="tasks">' + w.tasks.map(t => taskLi(t[0], t[1], t[2])).join("") + '</ul></article>';
+  }).join("");
+
+  const done = ALL_IDS.filter(id => items[id]).length;
+  $("#bar-plan").style.width = Math.round(done / ALL_IDS.length * 100) + "%";
+  $("#pct-plan").textContent = done + " / " + ALL_IDS.length;
+
+  const nextId = ALL_IDS.find(id => !items[id]);
+  const next = nextId && WEEKS.flatMap(w => w.tasks).find(t => t[0] === nextId);
+  $("#next-task").textContent = next
+    ? "Lo siguiente: " + next[1].charAt(0).toLowerCase() + next[1].slice(1) + "."
+    : "Plan completo. Toca cobrar la primera placa.";
+}
+
+function renderValid(){
+  $("#validacion").innerHTML = VALID.map(v => taskLi(v[0], v[1], v[2])).join("");
+  const done = VALID.filter(v => items[v[0]]).length;
+  $("#bar-val").style.width = Math.round(done / VALID.length * 100) + "%";
+  $("#pct-val").textContent = done + " / " + VALID.length;
+}
+
+const ESTADOS = { banco:"En banco", reparada:"Reparada", entregada:"Entregada", rechazada:"Rechazada" };
+
+function renderPlacas(){
+  const box = $("#placas");
+  if (!placas.length){
+    box.innerHTML = '<div class="empty">Todavía no hay placas registradas.<br>La primera que te preste un taller para practicar ya cuenta: regístrala para empezar a medir tu tasa de rechazo.</div>';
+  } else {
+    const orden = [...placas].sort((a,b) => String(b.ingreso||"").localeCompare(String(a.ingreso||"")));
+    box.innerHTML = orden.map(p => {
+      const st = ESTADOS[p.estado] ? p.estado : "banco";
+      const fecha = p.ingreso ? String(p.ingreso).slice(0,10) : "";
+      return '<article class="card"><div class="ctop">' +
+        '<h4>' + esc(p.marca || "Sin marca") + (p.modelo ? ' <span class="num" style="font-weight:400;font-size:13px;color:var(--muted)">' + esc(p.modelo) + '</span>' : '') + '</h4>' +
+        '<span class="state ' + st + '">' + ESTADOS[st] + '</span>' +
+        '<span class="meta">' + esc(fecha) + '</span></div>' +
+        (p.sintoma ? '<p><b style="color:var(--fg);font-weight:600">Reportó:</b> ' + esc(p.sintoma) + '</p>' : '') +
+        (p.notas ? '<p><b style="color:var(--fg);font-weight:600">Encontraste:</b> ' + esc(p.notas) + '</p>' : '') +
+        '<div class="btnrow"><button class="btn ghost" type="button" data-del="' + esc(p.id) + '" style="padding:5px 10px;font-size:12px">Borrar</button></div>' +
+        '</article>';
+    }).join("");
+  }
+
+  const total = placas.length;
+  const rep = placas.filter(p => p.estado === "reparada" || p.estado === "entregada").length;
+  const rech = placas.filter(p => p.estado === "rechazada").length;
+  const tasa = total ? Math.round(rech / total * 100) : 0;
+  $("#stats").innerHTML =
+    '<div class="stat"><div class="k">Placas</div><div class="v">' + total + '</div></div>' +
+    '<div class="stat"><div class="k">Resueltas</div><div class="v">' + rep + '</div></div>' +
+    '<div class="stat"><div class="k">Rechazadas</div><div class="v">' + rech + '</div></div>' +
+    '<div class="stat"><div class="k">Tasa rechazo</div><div class="v">' + tasa + '%</div></div>';
+}
+
+/* ---------- persistencia ---------- */
+function saveItems(){
+  LS.set("bi:items", items);
+  if (!db) return;
+  writing = writing.then(() =>
+    db.doc("estado/progreso").set({ items: items, actualizado: new Date().toISOString() })
+  ).catch(() => setSync(false, "Sin guardar en la nube"));
+}
+
+function setSync(on, text){
+  const d = $("#sync").querySelector(".dot");
+  d.classList.toggle("on", !!on);
+  $("#sync-t").textContent = text;
+}
+
+/* ---------- interacción ---------- */
+document.addEventListener("click", ev => {
+  const chk = ev.target.closest(".chk");
+  if (chk){
+    const id = chk.dataset.id;
+    if (items[id]) delete items[id]; else items[id] = true;
+    saveItems();
+    renderWeeks(); renderValid();
+    return;
+  }
+  const del = ev.target.closest("[data-del]");
+  if (del){
+    const id = del.dataset.del;
+    placas = placas.filter(p => p.id !== id);
+    LS.set("bi:placas", placas);
+    renderPlacas();
+    if (db) writing = writing.then(() => db.collection("placas").doc(id).delete()).catch(() => {});
+    return;
+  }
+  const tab = ev.target.closest(".tabs button");
+  if (tab) show(tab.dataset.view);
+});
+
+function show(name){
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.setAttribute("aria-selected", String(b.dataset.view === name)));
+  document.querySelectorAll(".view").forEach(v => { v.hidden = (v.id !== "v-" + name); });
+  LS.set("bi:tab", name);
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+$("#form-placa").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const marca = $("#f-marca").value.trim();
+  if (!marca){ $("#form-msg").textContent = "Pon al menos la marca."; return; }
+  const rec = {
+    id: "p" + Date.now().toString(36),
+    marca: marca,
+    modelo: $("#f-modelo").value.trim(),
+    sintoma: $("#f-sintoma").value.trim(),
+    notas: $("#f-notas").value.trim(),
+    estado: $("#f-estado").value,
+    ingreso: new Date().toISOString()
+  };
+  placas.push(rec);
+  LS.set("bi:placas", placas);
+  renderPlacas();
+  ev.target.reset();
+  $("#form-msg").textContent = "Guardada.";
+  setTimeout(() => { $("#form-msg").textContent = ""; }, 2500);
+  if (db){
+    const { id, ...body } = rec;
+    writing = writing.then(() => db.collection("placas").doc(id).set(body))
+      .catch(() => setSync(false, "Guardada sólo en este dispositivo"));
+  }
+});
+
+/* ---------- arranque ---------- */
+items  = LS.get("bi:items", {});
+placas = LS.get("bi:placas", []);
+renderWeeks(); renderValid(); renderPlacas();
+show(LS.get("bi:tab", "plan"));
+
+(async () => {
+  try {
+    db = await window.claude?.use?.("db");
+  } catch(e){ db = null; }
+  if (!db){ setSync(false, "Guardado sólo en este dispositivo"); return; }
+  setSync(true, "Sincronizado");
+
+  db.doc("estado/progreso").onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data() || {};
+    if (d.items && typeof d.items === "object"){
+      items = Object.assign({}, d.items);
+      LS.set("bi:items", items);
+      renderWeeks(); renderValid();
+    }
+  }, () => setSync(false, "Sin conexión con la nube"));
+
+  db.collection("placas").onSnapshot(snap => {
+    placas = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    LS.set("bi:placas", placas);
+    renderPlacas();
+  }, () => setSync(false, "Sin conexión con la nube"));
+})();
+</script>
