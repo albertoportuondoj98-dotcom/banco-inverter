@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Banco Inverter">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="build" content="202610062224">
+<meta name="build" content="202610070114">
 <title>Banco Inverter</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
@@ -384,6 +384,88 @@ ul.bul li::marker{color:var(--muted)}
   </div>
 
   <div>
+    <div class="panel-head col"><h3 class="sub">2b · Qué IPM tienes enfrente</h3><span class="chip pwr">cambia cómo se mide</span></div>
+    <p class="lede col" style="margin-bottom:10px">Cuatro familias cubren casi todo el minisplit residencial. Todas son de <b>600 V</b> y lo que escala con los BTU es el amperaje. No hay que memorizarlas: lo que importa es saber si tu módulo tiene <b>N común</b> o <b>emisor abierto</b>, porque de eso depende cómo haces la prueba de diodos de arriba.</p>
+    <div class="tablebox">
+      <table style="min-width:780px">
+        <thead><tr><th>Familia</th><th>Ejemplos</th><th>Rating</th><th>Encapsulado</th><th>Lo que trae integrado</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Mitsubishi</b><br>Mini y Super-mini DIP-IPM</td>
+            <td class="v">PSS30S71F6<br>PSS30S73F6<br>PS21765 · PS21767</td>
+            <td class="v">600 V<br>20 – 30 A</td>
+            <td>DIP de 38 pines<br>(PS21765 es de pin corto)</td>
+            <td>HVIC de disparo integrado, protección de sobrecorriente y de baja tensión de control</td>
+          </tr>
+          <tr>
+            <td><b>Mitsubishi</b><br>Large DIP-IPM y SLIMDIP</td>
+            <td class="v">PS22A72 · PS22A74<br>PS22A78 · PS22A79<br>SLIMDIP-M / SLIMDIP-W</td>
+            <td class="v">600 V</td>
+            <td>DIP grande / SLIMDIP</td>
+            <td>Son las hojas de datos que publican los umbrales de protección — el recuadro 2c de abajo sale de ahí</td>
+          </tr>
+          <tr>
+            <td><b>onsemi (Fairchild)</b><br>Motion-SPM</td>
+            <td class="v">FSBB20CH60C</td>
+            <td class="v">600 V<br>20 A</td>
+            <td>SPM27-CC<br><b>27 pines</b></td>
+            <td>Diodo de bootstrap integrado, HVIC de una sola alimentación, substrato DBC, aislamiento 2500 Vrms/min. <b>Terminales negativos de DC-link divididos</b> para sensado de corriente</td>
+          </tr>
+          <tr>
+            <td><b>onsemi</b><br>Motion-SPM 45</td>
+            <td class="v">FNB41560<br>FNA41560</td>
+            <td class="v">600 V<br>15 A</td>
+            <td>SPM-45</td>
+            <td>Diodos de bootstrap y pines Vs dedicados, <b>NTC integrado dentro del módulo</b>, bloqueo por baja tensión, paro por sobrecorriente, reporte de falla, aislamiento 2000 Vrms. <b>Emisores abiertos separados</b> en los IGBT inferiores</td>
+          </tr>
+          <tr>
+            <td><b>Infineon</b><br>CIPOS Mini</td>
+            <td class="v">IKCM15L60GA<br>IKCM15H60GA<br>IGCM15F60GA</td>
+            <td class="v">600 V<br>15 A</td>
+            <td>DIP 36×21 mm<br>MDIP-24 pasante</td>
+            <td>IGBT TRENCHSTOP, driver SOI, bootstrap integrado, paro por sobrecorriente, prevención de conducción cruzada, monitoreo de temperatura. Hasta 1600 W a 10 kHz, aislamiento 2 kV</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert warn col" style="margin-top:10px">
+      <h3>Emisor abierto: en ese módulo no hay una sola N</h3>
+      <p>Los módulos con <b>terminales negativos divididos</b> o <b>emisor abierto</b> — el FSBB20CH60C y los Motion-SPM 45 entre ellos — no tienen una N común: cada IGBT inferior saca su propio pin, y es justo ahí donde la placa pone las resistencias shunt. En esos módulos la prueba de diodos del lado bajo se hace <b>contra cada pin N por separado</b>, no contra un punto único. Si mides las tres fases contra una sola N vas a leer basura y condenar un módulo sano.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">2c · Los «15 V bajos», con número</h3><span class="chip hot">el dato que faltaba</span></div>
+    <p class="lede col" style="margin-bottom:10px">Toda esta guía repite que el IPM muere por 15 V bajos. Las hojas de datos de los DIP-IPM de Mitsubishi publican los umbrales exactos, y eso convierte la corazonada en una medición de multímetro.</p>
+    <div class="tablebox">
+      <table style="min-width:620px">
+        <thead><tr><th>Parámetro publicado</th><th>Valor</th><th>Qué haces con él</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Protección por baja tensión de control (UV), lado N</td>
+            <td class="v">dispara 10.3 – 12.5 V<br>rearma 10.8 – 13.0 V</td>
+            <td>Debajo de ~12.5 V el módulo se apaga solo y la placa reporta falla sin que nada esté quemado. Mide la rama de control en DC con la placa energizada antes de desoldar nada</td>
+          </tr>
+          <tr>
+            <td>Protección por baja tensión de control (UV), lado P</td>
+            <td class="v">dispara 9.0 – 12.0 V</td>
+            <td>El lado alto vive del bootstrap. Un capacitor de bootstrap seco se delata aquí antes que en cualquier otra medición</td>
+          </tr>
+          <tr>
+            <td>Umbral de protección de corto (SC), caracterizado con VD = 15 V</td>
+            <td class="v">0.455 – 0.505 V</td>
+            <td>Esa tensión la generan las resistencias shunt. Una shunt fuera de valor mueve el umbral: el módulo protege sin causa, o no protege cuando debe. Mide el valor de las shunt y compáralas entre sí</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert danger col" style="margin-top:10px">
+      <h3>La zona gris que te devuelve la placa en garantía</h3>
+      <p>La protección ya rearmó a <b>13 V</b>, y el fabricante caracteriza el módulo con <code>VD = 15 V</code>. O sea: una rama de control que mide <b>13.x V</b> no dispara ninguna alarma aunque esté dos volts por debajo del punto de diseño — trabaja, conmuta lento y disipa más de lo que debe. Esa es exactamente la condición que mata un IPM nuevo en semanas, y la que no vas a ver si sólo compruebas que «sí hay 15 V». Mide el número y compáralo contra 15, no contra cero.</p>
+    </div>
+  </div>
+
+  <div>
     <div class="panel-head col"><h3 class="sub">3 · Fuente conmutada: síntoma → causa</h3><span class="chip pwr">la falla más común</span></div>
     <div class="tablebox">
       <table>
@@ -400,6 +482,40 @@ ul.bul li::marker{color:var(--muted)}
     <div class="alert warn col" style="margin-top:10px">
       <h3>Cómo estudiarla sin energizar a 220</h3>
       <p>Inyecta DC directamente en el bus (<code>P</code> y <code>N</code>) con una fuente aislada, subiendo de poco a poco: muchas de estas fuentes arrancan desde <code>80–150 VDC</code>, un rango bastante menos letal. Si no tienes con qué inyectar, usa la lámpara serie en la entrada AC y mide rápido.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">3b · El IC de la fuente: pines y umbral de arranque</h3><span class="chip pwr">se mide en DC</span></div>
+    <p class="lede col" style="margin-bottom:10px">Tres familias cubren casi todas estas fuentes. Lo valioso es que cada una tiene un pin de alimentación propia con un umbral publicado en su hoja de datos: pones el multímetro en DC sobre ese pin, lo comparas contra el umbral, y sabes si el IC alcanza a arrancar — sin osciloscopio.</p>
+    <div class="tablebox">
+      <table style="min-width:760px">
+        <thead><tr><th>Familia</th><th>Pines</th><th>Umbral publicado</th><th>Qué significa en el banco</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>VIPer22A</b><br><span class="chip">DIP-8 · SO-8</span></td>
+            <td class="v">DRAIN<br>VDD<br>FB<br>SOURCE</td>
+            <td class="v">VDDon ≈ 14.5 V<br>VDDoff ≈ 8 V<br>FB útil 0 – 1 V</td>
+            <td>Una fuente de corriente de alta tensión conectada al DRAIN carga el capacitor de VDD; al llegar a VDDon el IC conmuta y apaga esa fuente de arranque, y si VDD cae a VDDoff se detiene y la vuelve a encender. Entonces: si mides VDD <b>subiendo y cayendo entre 8 y 14.5 V</b>, el devanado auxiliar no está tomando el relevo — electrolítico de VDD seco o diodo auxiliar abierto. VDD plano en cero: resistencia de arranque abierta o IC muerto</td>
+          </tr>
+          <tr>
+            <td><b>TinySwitch-III</b><br><span class="chip">TNY274 – TNY280</span></td>
+            <td class="v">D (DRAIN)<br>S (SOURCE)<br>EN/UV<br>BP/M</td>
+            <td class="v">BP regulado a 5.85 V<br>apaga si BP &lt; 4.9 V</td>
+            <td>El regulador interno carga el capacitor de BP a 5.85 V tomando corriente del DRAIN cada vez que el MOSFET está apagado. <b>BP debe medir ≈5.85 VDC</b>; por debajo de 4.9 V en régimen el IC apaga el MOSFET. Ojo al reponer ese capacitor: su valor <b>fija el límite de corriente</b> (0.1 µF estándar, 1 µF reducido, 10 µF aumentado), así que no lo sustituyas por otro valor «parecido». El pin EN/UV es habilitación y sensado de baja tensión de línea</td>
+          </tr>
+          <tr>
+            <td><b>TOPSwitch-GX</b><br><span class="chip">TOP242 – TOP250</span></td>
+            <td class="v">DRAIN · SOURCE<br>CONTROL<br>+ LINE-SENSE y X<br>según encapsulado</td>
+            <td class="v">LINE-SENSE:<br>comparador de 1 V</td>
+            <td>Sobre los tres pines básicos, los extra hacen sensado de línea (sobre y baja tensión), límite de corriente fijado con resistencia externa, encendido/apagado remoto, sincronización y selección de 132 / 66 kHz. Trae paro térmico con histéresis. Si la placa no arranca y CONTROL está sano, sospecha de la red del LINE-SENSE: resistencias de alto valor colgadas de la línea, que se abren</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert info col" style="margin-top:10px">
+      <h3>Por qué una fuente «hace tic-tic» — y por qué eso no condena al IC</h3>
+      <p>Tanto el bloqueo por baja tensión como el de sobretensión en la alimentación auxiliar terminan en el mismo síntoma: el IC entra en <i>hiccup</i>, enciende y apaga. Y cuando el devanado auxiliar no alcanza a sostener la corriente del pin de alimentación — por ejemplo con un corto en una salida — el convertidor queda en un <b>ciclo de arranque sin fin</b>. Es decir: el mismo tic-tic lo produce un electrolítico seco en la alimentación del IC <b>o</b> un corto aguas abajo. Desconecta las cargas y vuelve a medir antes de condenar el IC.</p>
     </div>
   </div>
 
@@ -432,6 +548,47 @@ ul.bul li::marker{color:var(--muted)}
           <tr><td>Descarga del compresor</td><td>Sobrecalentamiento</td><td>Nominal alto; abierto = código de error de sensor</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel-head col"><h3 class="sub">6 · Cómo detectar un IPM falsificado</h3><span class="chip hot">sin laboratorio</span></div>
+    <p class="lede col" style="margin-bottom:10px">Es el riesgo que más caro te sale: un módulo remarcado dura semanas y la garantía te la comes tú. La industria de detección de componentes falsos publica sus métodos, y buena parte se hace con lupa y luz. Hoy los falsificadores marcan con láser, no con tinta, así que el truco viejo de rascar el marcado ya no basta.</p>
+    <div class="tablebox">
+      <table style="min-width:660px">
+        <thead><tr><th>Qué buscar</th><th>Cómo</th><th>Señal de falsificación</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Marcas fantasma</b></td>
+            <td>Inclina el módulo bajo luz fuerte y míralo a contraluz rasante</td>
+            <td>Se alcanza a ver el contorno tenue del marcado original por debajo de la superficie nueva. Es la huella del <i>blacktopping</i>: lijan el marcado original y encima ponen una capa de epoxi negro con el número falso</td>
+          </tr>
+          <tr>
+            <td><b>Textura y lijado</b></td>
+            <td>Lupa de 10 a 40 aumentos</td>
+            <td>Marcas de lija, textura distinta entre la cara superior y los costados, y los hundidos del molde rellenos o demasiado superficiales</td>
+          </tr>
+          <tr>
+            <td><b>Patas</b></td>
+            <td>Visual, con la misma lupa</td>
+            <td>Patas dobladas, reestañadas o con residuo de soldadura en un módulo vendido como nuevo: eso es un módulo desoldado de otra placa</td>
+          </tr>
+          <tr>
+            <td><b>Permanencia del marcado</b></td>
+            <td>Frota con solvente — el método 2015 de la MIL-STD-883 define la mezcla</td>
+            <td>El marcado por láser genuino aguanta el solvente. La tinta puesta sobre una capa de blacktop se corre</td>
+          </tr>
+          <tr>
+            <td><b>Tipografía, profundidad y posición</b></td>
+            <td>Compara contra un módulo que sepas bueno, o contra la especificación de marcado del fabricante</td>
+            <td>Fuente, profundidad o ubicación distintas. Y el detalle que más te importa: los falsificadores no conocen la profundidad de los hilos de unión dentro del encapsulado, así que al remarcar con láser un módulo ya adelgazado <b>a veces funden parcialmente esos hilos</b>. Ese módulo llega muerto o muere al primer arranque</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert info col" style="margin-top:10px">
+      <h3>Lo que no vas a poder hacer, y qué hacer en su lugar</h3>
+      <p>La verificación fuerte — rayos X para ver tamaño del die e hilos de unión, y pruebas eléctricas de curva — es de laboratorio y no está a tu alcance ni lo estará pronto. Tu defensa real es la de siempre: <b>canibaliza módulos de placas muertas</b> antes que comprar barato en línea, y cuando compres, compra del mismo lote y <b>guarda uno como patrón</b> para comparar tipografía y textura en los siguientes.</p>
     </div>
   </div>
 
@@ -641,6 +798,7 @@ ul.bul li::marker{color:var(--muted)}
 
   <div>
     <div class="panel-head col"><h3 class="sub">Mirage</h3><span class="chip">la más común en CDMX</span></div>
+    <p class="lede col" style="margin-bottom:10px">Dato útil para cotizar por teléfono: los códigos <b>E1 a E6 se reportan como estándar en las líneas Mirage recientes</b> — Inverter X, X5, Life 12+ y Magnum. Es decir, el mismo código significa lo mismo entre esas series, y no tienes que preguntar la serie exacta para dar un primer diagnóstico. Lo que sigue sin cerrarse es <i>qué</i> significan E5 y E6.</p>
     <div class="tablebox">
       <table>
         <thead><tr><th>Código</th><th>Significado publicado</th><th>En el banco</th></tr></thead>
@@ -648,7 +806,7 @@ ul.bul li::marker{color:var(--muted)}
           <tr><td class="v">P0</td><td>Módulo IPM o IGBT de la tarjeta de condensador. La señal que el IPM manda al micro del compresor es anormal y el equipo se apaga</td><td>El código más valioso para ti: es una placa exterior y es tu especialidad. Sigue la familia de sobrecorriente completa</td></tr>
           <tr><td class="v">E1</td><td>Comunicación entre tarjeta de evaporador y de condensador <span class="chip hot">verificar</span> — otras fuentes lo dan como sensor de temperatura interior</td><td>Mide primero el riel de los optos. Si está sano, sigue el par de optoacopladores</td></tr>
           <tr><td class="v">E2</td><td>Sensor del evaporador de la unidad interior</td><td>NTC. Rápido y barato</td></tr>
-          <tr><td class="v">E5 / E6</td><td><span class="chip hot">verificar</span> Las fuentes públicas discrepan: unas los dan como comunicación y sobrecorriente, otras como sensores exterior y evaporador</td><td>No asumas. Mide NTC y riel de comunicación, y deja que la medición decida</td></tr>
+          <tr><td class="v">E5 / E6</td><td><span class="chip hot">verificar</span> Sigue sin manual oficial, pero el conteo ya no está empatado: una <b>segunda</b> fuente especializada en Mirage coincide con la primera lectura — <b>E5 = comunicación interior ↔ exterior</b> (cable de interconexión dañado, conector flojo, o tarjeta de cualquiera de las dos unidades) y <b>E6 = protección por sobrecorriente</b> (consumo por encima de lo normal: compresor, motor del ventilador o instalación eléctrica). Las fuentes que los daban como sensores quedan en minoría</td><td>Ya puedes empezar por ahí: en E6 corre la familia de sobrecorriente completa, en E5 el riel de los optos. Pero <b>no lo escribas en la nota de entrega</b> hasta cotejarlo con el manual técnico oficial de Mirage — el enlace está en Recursos</td></tr>
           <tr><td class="v">AP</td><td>Módulo WiFi en modo configuración</td><td>No es falla. Si un técnico te manda una placa por esto, cóbrale el diagnóstico y edúcalo — te lo va a agradecer</td></tr>
         </tbody>
       </table>
@@ -678,13 +836,22 @@ ul.bul li::marker{color:var(--muted)}
 
   <div>
     <div class="panel-head col"><h3 class="sub">LG</h3><span class="chip">códigos CH</span></div>
+    <p class="lede col" style="margin-bottom:10px">Antes de leer la tabla, la estructura: LG reporta en <b>dos familias separadas</b>. Los códigos <code>CH</code> son los de la unidad interior — murales clásicos, ARTCOOL, cassette y ducto — y los de la <b>placa exterior</b> se leen en el siete segmentos que está detrás del tornaviento del ventilador, o por la app de Smart Diagnosis. Eso te da una pregunta concreta para el técnico: <i>«¿el código lo leíste en la interior o en el display de la exterior?»</i>. Si lo leyó en la exterior, no es un CH y la tabla de abajo no aplica.</p>
     <div class="tablebox">
       <table>
         <thead><tr><th>Código</th><th>Significado</th><th>En el banco</th></tr></thead>
         <tbody>
           <tr><td class="v">CH21</td><td>Pico DC o sobrecorriente del compresor: la exterior detectó corriente sobre el límite seguro. Causas publicadas: compresor con problema mecánico o eléctrico, PCB exterior con componentes dañados, cableado y conectores sueltos o corroídos</td><td>Tu código estrella en LG. Familia de sobrecorriente completa, y revisa conectores corroídos antes que nada — es unidad exterior</td></tr>
           <tr><td class="v">CH05</td><td>Comunicación anormal interior ↔ exterior: conector de transmisión desconectado, cables mal conectados, placa exterior de comunicación</td><td>Empieza por el conector de transmisión y el cable; LG falla ahí más que en el silicio</td></tr>
-          <tr><td class="v">CH26</td><td>Compresor sobrecargado o rotor bloqueado</td><td>Mide fases y aislamiento. Si está a tierra, rechaza</td></tr>
+          <tr><td class="v">CH26</td><td>Compresor sobrecargado o rotor bloqueado: el compresor inverter se trabó o no da rotación</td><td>Mide fases y aislamiento. Si está a tierra, rechaza</td></tr>
+          <tr><td class="v">CH22</td><td>Sobretensión en el bus DC por pico de la línea. Otras fuentes lo publican como error del transformador de corriente CT2 por entrada de AC demasiado alta <span class="chip hot">verificar</span></td><td>Las dos lecturas te mandan al mismo lado: entrada y bus. MOV, fusible, electrolíticos del bus, y el circuito de sensado de corriente. Antes de culpar a la placa, pregunta por la tensión de línea del sitio — si el barrio tiene sobretensión, la placa nueva se vuelve a morir</td></tr>
+          <tr><td class="v">CH23</td><td>Tensión del bus DC demasiado baja: el bus no se cargó, o hubo sobrecorriente en el bus DC de la placa inversora exterior</td><td>Es la <b>cadena de precarga</b> de la pestaña Propagación con nombre de código LG: resistencia de precarga, relé, transistor que lo manda, diodo de rueda libre. Revísala completa, no cambies la resistencia sola</td></tr>
+          <tr><td class="v">CH10</td><td><span class="chip hot">verificar</span> Las fuentes se contradicen de frente: unas lo dan como <b>sensor de aire de descarga</b> abierto o en corto, con la temperatura de descarga por encima de 130 °C por termistor defectuoso; otras como <b>falla del motor del ventilador interior</b></td><td>No asumas ninguna de las dos. Si la placa que te llegó es de interior, revisa motor DC y su conector de hall; si es de exterior, mide el NTC de descarga. Las dos lecturas son baratas de descartar y una te saca del problema en diez minutos</td></tr>
+          <tr><td class="v">CH40</td><td>Termistor del transformador de corriente desconectado o en corto</td><td rowspan="4">Familia de NTC de la exterior: es la reparación de cinco minutos del lado LG, y son cuatro códigos distintos que todos acaban en lo mismo. <b>Cuidado con CH41:</b> es el sensor de descarga, y los de descarga suelen ser de 50 kΩ y no de 10 kΩ — si lo mides esperando 10 kΩ lo vas a condenar estando bueno</td></tr>
+          <tr><td class="v">CH41</td><td>Termistor del tubo de descarga del compresor inverter desconectado o en corto</td></tr>
+          <tr><td class="v">CH44</td><td>Termistor de aire de la unidad exterior</td></tr>
+          <tr><td class="v">CH45</td><td>Termistor de salida del serpentín del condensador</td></tr>
+          <tr><td class="v">CH38</td><td>Baja presión: falta de gas, o hielo en la válvula de expansión. LG lo muestra para proteger el equipo cuando el nivel de refrigerante está bajo</td><td>No es falla de placa. Es el equivalente del <code>EC</code> de Midea: devuélvela con nota de fuga. Y es un código que te conviene que tus clientes aprendan — te ahorra una placa buena en el banco</td></tr>
         </tbody>
       </table>
     </div>
@@ -694,13 +861,47 @@ ul.bul li::marker{color:var(--muted)}
     </div>
   </div>
 
+  <div>
+    <div class="panel-head col"><h3 class="sub">Placas sin display: el código por parpadeo</h3><span class="chip ok">nuevo</span></div>
+    <p class="lede col" style="margin-bottom:10px">Cuando el equipo no tiene siete segmentos, el <b>LED rojo de la tarjeta exterior</b> saca el código contando destellos, con pausa entre repeticiones. En la plataforma Midea y sus clones el patrón es <b>un destello por número, cada 8 segundos</b>: cuentas los destellos y ya tienes el código de protección sin abrir nada.</p>
+    <div class="tablebox">
+      <table style="min-width:640px">
+        <thead><tr><th>Destellos</th><th>Código</th><th>Significado publicado</th><th>En el banco</th></tr></thead>
+        <tbody>
+          <tr><td class="v">1 cada 8 s</td><td class="v">P1</td><td>Protección por tensión alta o baja</td><td>Entrada: MOV y fusible, y la tensión de línea del sitio</td></tr>
+          <tr><td class="v">2 cada 8 s</td><td class="v">P2</td><td>Protección por sobrecorriente</td><td>Familia de sobrecorriente completa</td></tr>
+          <tr><td class="v">4 cada 8 s</td><td class="v">P4</td><td>Error del drive del compresor inverter</td><td>Placa exterior, directo a tu banco. Es el código que más te conviene</td></tr>
+          <tr><td class="v">8 cada 8 s</td><td class="v">P8</td><td>Protección por temperatura de la unidad exterior — alta o insuficiente</td><td>Ventilador exterior, condensador sucio, NTC de la exterior. Rara vez es la placa</td></tr>
+          <tr><td class="v">9 cada 8 s</td><td class="v">P9</td><td>Protección por control de software del módulo de potencia (IPM)</td><td><b>Código nuevo para esta guía.</b> No es que el IPM esté en corto: el micro lo apagó por su propia lógica. Mide shunts y rama de 15 V — recuadros 2b y 2c de la pestaña Banco — <b>antes</b> de desoldar el módulo</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert warn col" style="margin-top:10px">
+      <h3>Dos preguntas antes de creerle al conteo</h3>
+      <p>Primero: <b>cuenta dos ciclos completos</b>, porque el patrón se repite con pausa y es facilísimo empezar a contar a media secuencia. Segundo, y más importante: pregunta <b>cuál LED</b> parpadea. En la unidad interior sin display el código sale por las lámparas de operación, temporizador y standby, y ahí el número de destellos <b>no significa lo mismo</b> que en la exterior. Un técnico que te reporte «parpadea 4 veces» sin decirte dónde no te dio ninguna información.</p>
+    </div>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Nominales de NTC: lo que sí quedó confirmado</h3><span class="chip">parcial</span></div>
+    <p class="lede" style="margin-bottom:10px">No existe una tabla pública marca por marca y posición por posición — la busqué y no está. Pero sí hay tres hechos verificables que cambian cómo compras el repuesto y cómo interpretas la medición:</p>
+    <ul class="bul">
+      <li><b>10 kΩ a 25 °C es el estándar del mercado</b> para sensores de ambiente y de tubería de minisplit, y los de reemplazo se venden como compatibles con LG, Samsung, Daikin, Mitsubishi y demás. En la plataforma Midea está documentado explícitamente: los sensores de la tarjeta son <b>10 K a 25 °C / 77 °F</b>, tipo NTC. Su tabla de valores de T1 a T4 da, por ejemplo, <code>12.6431 kΩ a 20 °C</code> — úsalo como punto de anclaje cuando midas en un cuarto frío.</li>
+      <li><b>El de descarga casi nunca es de 10 kΩ.</b> Los kits 3 en 1 para minisplit se venden como <code>10 k + 10 k + 50 k</code>: ambiente y serpentín de 10 kΩ, <b>descarga de 50 kΩ</b>. Esto es lo más rentable de todo este bloque: si mides el de descarga esperando 10 kΩ, lo condenas estando bueno y cambias la pieza equivocada.</li>
+      <li><b>Hay versiones de 15 kΩ y de 20 kΩ</b> en circulación para minisplit, vendidas como kits aparte. Esa es la razón de fondo por la que medir contra un nominal supuesto falla: hay <b>cuatro nominales distintos</b> conviviendo en el mismo tipo de equipo.</li>
+    </ul>
+    <hr class="rule" style="margin:13px 0">
+    <p class="lede">El procedimiento que <b>no</b> depende del nominal, y que es el que debes usar en el banco: mide la resistencia, <b>caliéntalo con la mano y verifica que baje</b>, y compárala contra el otro sensor de la misma placa si hay dos de la misma posición. Un NTC abierto o que no responde al calor está malo sin importar su nominal. El nominal sólo lo necesitas para <i>comprar</i> el repuesto: Midea es 10 kΩ, el de descarga es sospechoso de 50 kΩ, y lo demás se confirma contra el manual del modelo.</p>
+  </div>
+
   <div class="panel col">
     <div class="panel-head"><h3 class="sub">Lo que falta por confirmar</h3></div>
     <ul class="bul">
-      <li>Mirage E5 y E6: las fuentes públicas se contradicen. Se resuelve con el manual de servicio de la serie exacta.</li>
-      <li>LG: faltan CH10, CH38 y el resto de la familia CH con detalle confiable.</li>
-      <li>Falta la tabla de nominales de NTC por marca y posición — es lo que convierte la reparación de sensores en trabajo de cinco minutos.</li>
-      <li>Faltan los códigos por parpadeo de LED, que es como diagnostican las placas sin display.</li>
+      <li><b>Mirage E5 y E6 · sigue abierto, pero ya no empatado.</b> Dos fuentes a favor de comunicación y sobrecorriente contra las que los daban como sensores. Lo que falta es abrir el <b>manual técnico oficial de Mirage</b> — el enlace está en Recursos, y vale la pena bajarlo al teléfono en cuanto tengas WiFi, porque resuelve este punto de una vez.</li>
+      <li><b>LG · resuelto en parte.</b> Entraron CH22, CH23, CH38, CH40, CH41, CH44 y CH45 con significado publicado. <b>CH10 sigue contradictorio</b> y queda marcado como tal: hay fuentes que lo dan como sensor de descarga y otras como ventilador interior. Falta además el mapa de los códigos de la <b>placa exterior</b>, que son otra familia y se leen en el siete segmentos detrás del tornaviento.</li>
+      <li><b>NTC · resuelto en parte.</b> Confirmado el estándar de 10 kΩ a 25 °C, el dato de Midea, y el hallazgo que de verdad importa: <b>el de descarga suele ser de 50 kΩ</b>. Falta todavía la tabla por marca y posición de Mirage y de LG.</li>
+      <li><b>Parpadeo de LED · resuelto para la plataforma Midea</b> (P1, P2, P4, P8 y P9, un destello por número cada 8 segundos). Falta el mapa de destellos de la <b>unidad interior</b> — las lámparas de operación, temporizador y standby — y el equivalente de Mirage y LG.</li>
+      <li><b>Topología de placa por fabricante · sigue cerrado.</b> Los esquemáticos a nivel componente son propietarios y no hay vía legal gratuita. Lo más cercano que sí se consiguió son las <b>hojas de datos de los IPM y de los IC de fuente</b>, que dan pines, encapsulado y umbrales de protección reales: está en la pestaña Banco, recuadros 2b, 2c y 3b, y en la práctica cubre buena parte de lo que un esquemático te daría.</li>
     </ul>
     <hr class="rule" style="margin:13px 0">
     <p class="lede">Conforme los vayas confirmando en el banco, esta sección se corrige. Un dato medido por ti vale más que cualquier tabla de internet, incluida esta.</p>
@@ -780,6 +981,27 @@ ul.bul li::marker{color:var(--muted)}
     <p class="lede col" style="margin-top:10px">Son rangos de referencia, no precios confirmados: calíbralos con tres llamadas a la competencia. Lo sólido es la estructura — entras por debajo de la placa nueva, el técnico gana más que revendiendo tarjeta, el cliente paga la mitad, y tu margen queda en <b>60–85 %</b>.</p>
   </div>
 
+  <div>
+    <div class="panel-head col"><h3 class="sub">Cuánto cuesta hoy una placa nueva en México</h3><span class="chip hot">recalibración</span></div>
+    <p class="lede col" style="margin-bottom:10px">Precios de lista publicados en el mercado mexicano. Importan porque son el techo real de lo que puedes cobrar, y en la gama baja están <b>muy por debajo</b> del rango que supone la tabla de arriba.</p>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>Qué</th><th>Precio publicado (MXN)</th></tr></thead>
+        <tbody>
+          <tr><td>Tarjeta universal inverter Mirage, desde</td><td class="v">689</td></tr>
+          <tr><td>Tarjeta universal grado B, reacondicionada</td><td class="v">950</td></tr>
+          <tr><td>Tarjeta Inverter X, desde</td><td class="v">1,148</td></tr>
+          <tr><td>Tarjeta universal nueva y funcional, rango típico</td><td class="v">1,500 – 3,000</td></tr>
+          <tr><td>Tarjeta electrónica Whirlpool, según modelo</td><td class="v">1,999 – 4,895</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert danger col" style="margin-top:10px">
+      <h3>Tu precio de 1,200 a 2,000 no funciona en toda la gama</h3>
+      <p>Si existe una universal de <b>689 pesos</b> que resuelve el equipo del cliente, cobrar 1,500 por reparar la original es perder el trabajo — y además perder la discusión, porque el técnico tiene razón. Tu reparación sólo gana donde la universal <b>no</b> sirve: tarjetas de condensador inverter, equipos con comunicación propietaria, y modelos sin universal disponible. Eso define tu nicho con más precisión que cualquier plan: <b>no compitas en placas de interior genéricas, compite en tarjetas de exterior</b> — que son justamente las que reportan P0, P4 y CH21. Y pide marca y modelo <i>antes</i> de cotizar: el precio de la universal de ese equipo es tu techo, y cambia por modelo.</p>
+    </div>
+  </div>
+
   <div class="alert warn col">
     <h3>El riesgo no es técnico, es comercial</h3>
     <p>Puedes ser excelente reparando y tener el banco vacío. Lo que determina cuánto entra no es tu habilidad sino cuántos talleres saben que existes. Los primeros dos meses pueden ser de 0 a 3 placas en total — si no aguantas ese arranque seco, mejor saberlo antes de comprar la fuente.</p>
@@ -793,6 +1015,18 @@ ul.bul li::marker{color:var(--muted)}
       <li><b>Disputa de garantía.</b> Devuelves la placa buena, el equipo sigue fallando por el compresor, y el técnico te culpa. Se evita con una línea escrita: <i>la garantía cubre la falla reparada por 90 días, no cubre el equipo ni fallas de otro origen</i>.</li>
       <li><b>El techo.</b> Esto es tiempo tuyo vendido por hora. Da buen margen y no escala solo.</li>
     </ul>
+  </div>
+
+  <div class="panel col">
+    <div class="panel-head"><h3 class="sub">Lista para la tarea «visitar 3 casas de refacciones»</h3><span class="chip">directorio, por verificar</span></div>
+    <p class="lede" style="margin-bottom:10px">Proveedores <b>listados en el directorio Cosmos</b> para la zona. No son recomendaciones ni los he verificado: son el punto de partida para llamar y confirmar dirección, horario y si manejan tarjetas. Marca antes de cruzar la ciudad.</p>
+    <div class="linklist">
+      <a href="https://www.cosmos.com.mx/empresa/equipos-de-refrigeracion-cuitlahuac-c7gp.html">Equipos de Refrigeración Cuitláhuac — CDMX <span>Listada como venta de refacciones para equipos de refrigeración, cámaras frías y aire acondicionado. Es el perfil que más se parece a tu cliente ideal: mostrador que atiende técnicos.</span></a>
+      <a href="https://www.cosmos.com.mx/ultras/un-mundo-de-refacciones-york-gnww.html">Un Mundo de Refacciones York <span>Proveedor verificado del directorio desde 2019: accesorios para aire acondicionado, minisplit, refacciones de refrigeración y aceites.</span></a>
+      <a href="https://www.cosmos.com.mx/producto/tarjetas-electronicas-para-equipos-de-aire-acondicionado-con-display-8s8t/">Quién vende tarjetas electrónicas de A/C en el directorio <span>La categoría completa. Son tus competidores directos y, al mismo tiempo, los que pueden mandarte las placas que ellos no reparan. Llámalos como proveedor, no como rival.</span></a>
+    </div>
+    <hr class="rule" style="margin:13px 0">
+    <p class="lede">El guion de la llamada es el mismo de la oferta: <i>«reparo tarjetas inverter a nivel componente, no las cambio; si les llega un cliente con una tarjeta que ya no consiguen, me la mandan y la diagnostico»</i>. A un mostrador que vende tarjetas le interesa la placa que <b>ya no hay en existencia</b>, porque hoy esa venta la pierde.</p>
   </div>
 
   <div class="panel col">
@@ -837,6 +1071,32 @@ ul.bul li::marker{color:var(--muted)}
       <a href="https://www.lg.com/mx/soporte/soporte-de-producto/solucion-de-problemas/help-library/cs-CT20178057-20153416138733/">LG México — error CH05 <span>Del propio fabricante, que es la fuente que no se contradice.</span></a>
       <a href="https://climajobs.com/codigos-error/lg/ch21-corriente-alta-compresor-inverter">LG CH21 — corriente alta del compresor <span>Causas publicadas y orden de revisión.</span></a>
       <a href="https://t-inverter.com/curso/curso-tarjetas-inverter-principales-defectos-1/">Principales defectos de tarjetas inverter <span>Curso en español centrado en fallas reales de placa.</span></a>
+      <a href="https://images.mirage.mx/pdf/manual_tecnico_mirage.pdf">Manual técnico Mirage — PDF del propio fabricante <span>La fuente que cierra el pendiente de E5 y E6. Bájalo al teléfono: es el único que gana la discusión contra las listas de internet.</span></a>
+      <a href="https://aireacondicionadomirage.com/codigos-de-error-minisplit-mirage/">Mirage — códigos de error, segunda fuente <span>La que coincide en E5 = comunicación y E6 = sobrecorriente, y confirma que E1 a E6 son estándar en Inverter X, X5, Life 12+ y Magnum.</span></a>
+      <a href="https://blog.usro.net/es/2025/06/lista-de-codigos-de-error-del-ac-inverter-lg/">LG — lista de códigos de error del A/C inverter <span>De aquí salen CH22, CH23, CH40, CH41, CH44 y CH45, y la separación entre códigos CH de interior y códigos de la placa exterior.</span></a>
+      <a href="https://climaproyectos.com.mx/wp-content/uploads/2016/06/Codigos-de-Falla-Xpower-Ultra-53UTC-53UTQ-CP.pdf">Códigos de falla con tabla de parpadeo de LED (PDF) <span>Tabla display–LED–temporizador para placas sin siete segmentos. Es la que traduce «parpadea 2 veces» a un código.</span></a>
+      <a href="https://megatonerd.com/descargas/category/1-descargas.html?download=35%3Aguia-de-reparacion-aires-inverter-wave">Directriz de reparación de aire acondicionado inverter <span>De aquí salen los destellos cada 8 segundos y el P9 de protección por software del IPM.</span></a>
+      <a href="https://www.mundoclima.com/wp-content/uploads/2019/05/ERRORES_MUNDOCLIMA_MULTI.pdf">Mundoclima — códigos de error multi (PDF) <span>Plataforma Midea con otra serigrafía. Útil para cruzar códigos cuando la marca del equipo no aparece en ningún lado.</span></a>
+    </div>
+    <hr class="rule" style="margin:14px 0 12px">
+    <h4 class="eyebrow" style="margin-bottom:9px">Hojas de datos — IPM e IC de fuente</h4>
+    <p class="lede" style="margin-bottom:10px;font-size:13.5px">Esto es lo más parecido a un esquemático que vas a conseguir legal y gratis: pines, encapsulado y umbrales de protección reales, del propio fabricante del silicio.</p>
+    <div class="linklist">
+      <a href="https://www.mitsubishielectric.co.jp/semiconductors/powerdevices/datasheets/dipipm/slimdip/slimdip-m_j.pdf">Mitsubishi SLIMDIP-M — hoja de datos (PDF) <span>La fuente de los umbrales del recuadro 2c: UV lado N 10.3–12.5 V, lado P 9.0–12.0 V, y SC 0.455–0.505 V con VD = 15 V.</span></a>
+      <a href="https://www.mitsubishielectric.com/semiconductors/powerdevices/products/ipm-dipipm/mini_dipipm/pss30s71f6.html">Mitsubishi Mini DIP-IPM PSS30S71F6 <span>600 V / 30 A. Desde aquí navegas a toda la familia Mini y Super-mini.</span></a>
+      <a href="https://engineering.purdue.edu/~dionysis/EE452/Lab5/Lab5_Supporting_Materials/ps21765_IGBT_Module_HVMTRKIT.pdf">Mitsubishi PS21765 — hoja de datos con diagrama de pines (PDF) <span>600 V / 20 A, DIP de pin corto, 38 pines. Trae el diagrama de pines completo, que es lo que necesitas para medir sin adivinar.</span></a>
+      <a href="https://www.onsemi.com/products/discrete-power-modules/power-modules/intelligent-power-modules-ipms/fna41560">onsemi FNA41560 / FNB41560 — Motion-SPM 45 <span>600 V / 15 A, con NTC integrado en el módulo y emisores abiertos separados. Lee esto antes de hacer la prueba de diodos en uno de estos.</span></a>
+      <a href="https://www.mouser.com/datasheet/3/101/1/FNA41560B2-D.PDF">onsemi FNA41560B2 — hoja de datos (PDF) <span>El documento completo, con la tabla de pines y los umbrales de bloqueo por baja tensión.</span></a>
+      <a href="https://www.infineon.com/cms/en/product/power/intelligent-power-modules-ipm/ikcm15l60ga/">Infineon IKCM15L60GA — CIPOS Mini <span>600 V / 15 A en DIP 36×21, MDIP-24 pasante. Hasta 1600 W a 10 kHz, con monitoreo de temperatura.</span></a>
+      <a href="https://www.st.com/resource/en/datasheet/viper22a-e.pdf">ST VIPer22A — hoja de datos (PDF) <span>De aquí salen VDDon 14.5 V y VDDoff 8 V, los dos números con los que diagnosticas una fuente que hace tic-tic.</span></a>
+      <a href="https://xdevs.com/doc/_Datasheets/Power_Integrations/TNY274-2801.pdf">Power Integrations TinySwitch-III TNY274–280 (PDF) <span>El pin BP regulado a 5.85 V, el apagado por debajo de 4.9 V, y el valor del capacitor de BP que fija el límite de corriente.</span></a>
+      <a href="https://www.mouser.com/datasheet/2/328/power%20integrations_top242-250-1198633.pdf">Power Integrations TOPSwitch-GX TOP242–250 (PDF) <span>Pines CONTROL, LINE-SENSE y el comparador de 1 V, más el paro térmico con histéresis.</span></a>
+    </div>
+    <hr class="rule" style="margin:14px 0 12px">
+    <h4 class="eyebrow" style="margin-bottom:9px">Falsificaciones de componentes</h4>
+    <div class="linklist">
+      <a href="https://www.erai.com/presentations/Training%20Track%204/Latest%20Electrical%20Test%20Methods%20for%20Counterfeit%20Detection%20Mark%20Marshal.pdf">ERAI — métodos de prueba para detección de falsificaciones (PDF) <span>Presentación de la industria. De aquí sale el marcado láser, el blacktopping y la prueba de solvente de la MIL-STD-883.</span></a>
+      <a href="https://www.circuitinsight.com/pdf/methods_detection_counterfeit_components_smta.pdf">SMTA — métodos de detección de componentes falsificados (PDF) <span>El panorama completo, incluido lo que requiere laboratorio y por qué. Útil para saber cuándo parar.</span></a>
     </div>
     <hr class="rule" style="margin:14px 0 12px">
     <p class="lede">Lo que más vale y no cuesta nada: los <b>manuales de servicio</b> de Mirage, Mabe, Midea, LG y Samsung en PDF. Traen diagramas y tablas de códigos de error, y un código leído bien te ahorra dos horas de banco.</p>
