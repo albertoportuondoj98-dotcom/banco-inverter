@@ -3,7 +3,7 @@
 // el shell se precachea en la instalación y las fuentes se guardan al vuelo.
 // VERSION la reescribe tools/build.js en cada compilación, así que un
 // despliegue nuevo invalida el caché viejo sin tener que tocar nada a mano.
-const VERSION = "202610082016";
+const VERSION = "202610082216";
 const SHELL = "shell-" + VERSION;
 const RUNTIME = "runtime-" + VERSION;
 
